@@ -28,4 +28,4 @@ SVG favicon set:
 
 ### FFmpeg assets
 
-The converter vendors the single-thread ffmpeg.wasm runtime under `/tools/video-converter/vendor/ffmpeg/` so the tool does not depend on third-party CDN scripts for normal operation. External CDNs remain as fallback sources only.
+The converter vendors the single-thread ffmpeg.wasm runtime under `/tools/video-converter/vendor/ffmpeg/` so the tool does not depend on third-party CDN scripts for normal operation. The page also implements its own small `fetchFile` / `toBlobURL` helpers to avoid the broken UMD global issue in `@ffmpeg/util`. External CDNs remain as fallback sources only.
