@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Aurora diamond favicon">
+  <defs>
+    <linearGradient id="a" x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6ee7ff"/><stop offset=".35" stop-color="#7796ff"/><stop offset=".7" stop-color="#ff6ec7"/><stop offset="1" stop-color="#ffd166"/>
+    </linearGradient>
+    <filter id="glow" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#070812"/>
+  <path d="M32 6 56 32 32 58 8 32 32 6Z" fill="url(#a)" opacity=".95" filter="url(#glow)"/>
+  <path d="M32 14 48 32 32 50 16 32 32 14Z" fill="#090a1a" opacity=".82"/>
+  <path d="M20 32h24M32 14v36M20 32l12-18 12 18-12 18-12-18Z" fill="none" stroke="#f8fbff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".88"/>
+  <circle cx="32" cy="32" r="4.3" fill="#6ee7ff"/>
+</svg>
