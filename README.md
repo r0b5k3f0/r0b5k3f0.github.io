@@ -48,3 +48,8 @@ The PDF Toolbox vendors browser-side PDF libraries under `/tools/pdf-toolbox/ven
 - `PDF.js` for text extraction and PDF parsing.
 
 Uploaded PDFs/images are processed in the user's browser and are not sent to a backend.
+
+
+## Social preview
+
+- `/og-image.png` — 1200×630 Open Graph image for Discord, Twitter/X, Facebook, and other link previews.
