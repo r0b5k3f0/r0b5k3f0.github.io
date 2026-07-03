@@ -560,7 +560,7 @@
       <div class="panel reveal">
         <div class="panel-inner">
           <h2>選擇影片與輸出格式</h2>
-          <p>拖拉影片到下方，選擇 preset，按下轉檔。第一次使用會下載 FFmpeg WASM 核心，可能需要一些時間。</p>
+          <p>拖拉影片到下方，選擇 preset，按下轉檔。第一次使用會下載本站提供的 FFmpeg WASM 核心，可能需要一些時間。</p>
 
           <input id="fileInput" class="file-input" type="file" accept="video/*,audio/*,.mkv,.mov,.avi,.webm,.mp4,.m4v,.flv,.wmv,.mp3,.wav,.m4a,.aac,.ogg" />
           <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="選擇或拖拉影片檔">
@@ -693,7 +693,7 @@
             <div class="info-grid">
               <div class="info-item"><div class="info-icon">🔒</div><div><strong>隱私</strong><span>影片不會上傳到本站；處理發生在你的瀏覽器記憶體中。</span></div></div>
               <div class="info-item"><div class="info-icon">⚙️</div><div><strong>純靜態</strong><span>GitHub Pages 只提供 HTML/CSS/JS；FFmpeg 由 WebAssembly 執行。</span></div></div>
-              <div class="info-item"><div class="info-icon">⏳</div><div><strong>效能</strong><span>第一次載入需下載數十 MB 的 WASM 核心；大影片可能需要很久。</span></div></div>
+              <div class="info-item"><div class="info-icon">⏳</div><div><strong>效能</strong><span>第一次載入需下載本站靜態提供的數十 MB WASM 核心；大影片可能需要很久。</span></div></div>
               <div class="info-item"><div class="info-icon">🧪</div><div><strong>相容</strong><span>建議使用最新版 Chrome、Edge 或 Firefox。手機瀏覽器可能較慢。</span></div></div>
             </div>
           </div>
@@ -736,15 +736,21 @@
       logText: ''
     };
 
-    const CDN_SETS = [
+    const FFMPEG_SOURCES = [
       {
-        name: 'jsDelivr',
+        name: 'local GitHub Pages vendor',
+        ffmpeg: '/tools/video-converter/vendor/ffmpeg/ffmpeg.js',
+        util: '/tools/video-converter/vendor/ffmpeg/ffmpeg-util.js',
+        core: '/tools/video-converter/vendor/ffmpeg'
+      },
+      {
+        name: 'jsDelivr fallback',
         ffmpeg: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
         util: 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/umd/index.js',
         core: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
       },
       {
-        name: 'unpkg',
+        name: 'unpkg fallback',
         ffmpeg: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
         util: 'https://unpkg.com/@ffmpeg/util@0.12.2/dist/umd/index.js',
         core: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd'
@@ -1036,34 +1042,60 @@
       setProgress(0, '等待檔案');
     }
 
+    function getGlobalNamespace(name) {
+      return (typeof globalThis !== 'undefined' && globalThis[name])
+        || (typeof window !== 'undefined' && window[name])
+        || (typeof self !== 'undefined' && self[name])
+        || null;
+    }
+
+    function cacheBusted(src) {
+      const version = 'v=0.12.10-local-20260703';
+      const url = new URL(src, window.location.href);
+      if (url.origin === window.location.origin) url.searchParams.set('_', version);
+      return url.href;
+    }
+
     function loadScript(src) {
       return new Promise((resolve, reject) => {
-        if ([...document.scripts].some((script) => script.src === src)) return resolve();
+        const finalSrc = cacheBusted(src);
+        const existing = [...document.scripts].find((script) => script.src === finalSrc);
+        if (existing) {
+          if (existing.dataset.loaded === 'true') return resolve();
+          existing.remove();
+        }
         const script = document.createElement('script');
-        script.src = src;
+        script.src = finalSrc;
         script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('無法載入 ' + src));
+        script.dataset.ffmpegLoader = 'true';
+        script.onload = () => {
+          script.dataset.loaded = 'true';
+          resolve();
+        };
+        script.onerror = () => {
+          script.remove();
+          reject(new Error('無法載入 ' + src));
+        };
         document.head.appendChild(script);
       });
     }
 
     async function ensureLibraries() {
-      if (window.FFmpegWASM && window.FFmpegUtil) return CDN_SETS[0];
+      if (getGlobalNamespace('FFmpegWASM') && getGlobalNamespace('FFmpegUtil')) return FFMPEG_SOURCES[0];
       let lastError = null;
-      for (const cdn of CDN_SETS) {
+      for (const source of FFMPEG_SOURCES) {
         try {
-          appendLog('Loading ffmpeg.wasm wrapper from ' + cdn.name + '…');
-          await loadScript(cdn.ffmpeg);
-          await loadScript(cdn.util);
-          if (window.FFmpegWASM && window.FFmpegUtil) {
-            appendLog('Wrapper loaded: ' + cdn.name, 'ok');
-            return cdn;
+          appendLog('Loading ffmpeg.wasm wrapper from ' + source.name + '…');
+          await loadScript(source.ffmpeg);
+          await loadScript(source.util);
+          if (getGlobalNamespace('FFmpegWASM') && getGlobalNamespace('FFmpegUtil')) {
+            appendLog('Wrapper loaded: ' + source.name, 'ok');
+            return source;
           }
           throw new Error('FFmpegWASM / FFmpegUtil namespace not found');
         } catch (error) {
           lastError = error;
-          appendLog('CDN failed (' + cdn.name + '): ' + error.message, 'warn');
+          appendLog('Source failed (' + source.name + '): ' + error.message, 'warn');
         }
       }
       throw lastError || new Error('無法載入 FFmpeg WASM wrapper。');
@@ -1083,9 +1115,9 @@
 
     async function ensureFFmpegLoaded(preferredCdn) {
       if (state.loaded && state.ffmpeg) return;
-      const { FFmpeg } = window.FFmpegWASM;
-      const { toBlobURL } = window.FFmpegUtil;
-      const ordered = [preferredCdn, ...CDN_SETS.filter((cdn) => cdn !== preferredCdn)].filter(Boolean);
+      const { FFmpeg } = getGlobalNamespace('FFmpegWASM');
+      const { toBlobURL } = getGlobalNamespace('FFmpegUtil');
+      const ordered = [preferredCdn, ...FFMPEG_SOURCES.filter((source) => source !== preferredCdn)].filter(Boolean);
       let lastError = null;
       for (const cdn of ordered) {
         try {
@@ -1094,8 +1126,8 @@
           const ffmpeg = new FFmpeg();
           bindFFmpegEvents(ffmpeg);
           await ffmpeg.load({
-            coreURL: await toBlobURL(cdn.core + '/ffmpeg-core.js', 'text/javascript'),
-            wasmURL: await toBlobURL(cdn.core + '/ffmpeg-core.wasm', 'application/wasm')
+            coreURL: await toBlobURL(cacheBusted(cdn.core + '/ffmpeg-core.js'), 'text/javascript'),
+            wasmURL: await toBlobURL(cacheBusted(cdn.core + '/ffmpeg-core.wasm'), 'application/wasm')
           });
           state.ffmpeg = ffmpeg;
           state.loaded = true;
@@ -1137,7 +1169,7 @@
         const cdn = await ensureLibraries();
         await ensureFFmpegLoaded(cdn);
 
-        const { fetchFile } = window.FFmpegUtil;
+        const { fetchFile } = getGlobalNamespace('FFmpegUtil');
         const inputExt = getExt(state.file.name);
         const outputExt = outputExtForPreset();
         const inputName = safeVirtualName('input', inputExt);
