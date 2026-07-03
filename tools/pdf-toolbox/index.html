@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="r0b5k3f0 的純靜態 PDF 工具箱：合併、抽頁、分割、旋轉、圖片轉 PDF 與文字抽取，全部在本機瀏覽器內執行。" />
+  <meta name="theme-color" content="#090A1A" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="mask-icon" href="/favicons/favicon-mask.svg" color="#6ee7ff" />
+  <title>PDF Toolbox · r0b5k3f0</title>
+  <style>
+    :root {
+      --bg: #070812;
+      --text: #f8fbff;
+      --muted: rgba(248, 251, 255, .68);
+      --faint: rgba(248, 251, 255, .48);
+      --line: rgba(255, 255, 255, .15);
+      --cyan: #6ee7ff;
+      --violet: #ba7cff;
+      --pink: #ff6ec7;
+      --gold: #ffd166;
+      --green: #75f7b1;
+      --red: #ff6f91;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .48);
+      --radius: 28px;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 8%, rgba(110, 231, 255, .28), transparent 30%),
+        radial-gradient(circle at 82% 14%, rgba(255, 110, 199, .22), transparent 30%),
+        radial-gradient(circle at 54% 84%, rgba(186, 124, 255, .25), transparent 38%),
+        linear-gradient(135deg, #050611 0%, #0b0d24 50%, #14081d 100%);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -4;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 58px 58px;
+      mask-image: radial-gradient(circle at 50% 16%, #000 0 52%, transparent 86%);
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      opacity: .055;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.72'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+    ::selection { background: rgba(110, 231, 255, .35); }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    code { color: var(--cyan); }
+
+    #stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; pointer-events: none; }
+    .aurora {
+      position: fixed;
+      inset: -22vh -20vw;
+      z-index: -5;
+      background:
+        conic-gradient(from 120deg at 30% 40%, rgba(110,231,255,.13), transparent 23%, rgba(255,110,199,.16), transparent 56%, rgba(117,247,177,.10), rgba(110,231,255,.13)),
+        conic-gradient(from 260deg at 70% 58%, rgba(186,124,255,.20), transparent 25%, rgba(255,209,102,.10), transparent 62%, rgba(110,231,255,.14));
+      filter: blur(58px) saturate(1.25);
+      animation: auroraSpin 26s linear infinite alternate;
+      opacity: .95;
+    }
+    .cursor-glow {
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      left: 0;
+      top: 0;
+      z-index: -2;
+      border-radius: 999px;
+      pointer-events: none;
+      translate: -50% -50%;
+      background: radial-gradient(circle, rgba(110,231,255,.20), rgba(186,124,255,.08) 42%, transparent 72%);
+      filter: blur(12px);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .wrap { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+    .site-header { position: sticky; top: 16px; z-index: 30; margin-top: 16px; }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      padding: 14px 16px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px;
+      background: rgba(7, 8, 18, .56); backdrop-filter: blur(22px) saturate(1.35); box-shadow: 0 16px 50px rgba(0,0,0,.24);
+    }
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 850; letter-spacing: .02em; white-space: nowrap; }
+    .brand-mark {
+      position: relative; width: 38px; height: 38px; border-radius: 13px;
+      background: linear-gradient(135deg, rgba(110,231,255,.95), rgba(186,124,255,.95) 52%, rgba(255,110,199,.95));
+      box-shadow: 0 0 30px rgba(110,231,255,.32), inset 0 0 18px rgba(255,255,255,.28); overflow: hidden;
+    }
+    .brand-mark::before, .brand-mark::after { content: ""; position: absolute; border-radius: inherit; inset: 8px; border: 1px solid rgba(255,255,255,.72); transform: rotate(45deg); }
+    .brand-mark::after { inset: 14px; background: rgba(5,6,17,.7); border: 0; }
+    .nav-links { display: flex; align-items: center; gap: 6px; color: rgba(248,251,255,.78); font-size: 14px; }
+    .nav-links a { padding: 10px 13px; border-radius: 999px; transition: background .2s ease, color .2s ease, transform .2s ease; }
+    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,.1); transform: translateY(-1px); }
+
+    .btn {
+      position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 44px; padding: 0 16px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px;
+      color: var(--text); background: rgba(255,255,255,.08); box-shadow: 0 12px 34px rgba(0,0,0,.22);
+      overflow: hidden; isolation: isolate; transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, opacity .2s ease; white-space: nowrap; cursor: pointer;
+    }
+    .btn::before { content: ""; position: absolute; inset: -2px; z-index: -1; opacity: 0; background: linear-gradient(90deg, rgba(110,231,255,.8), rgba(186,124,255,.82), rgba(255,110,199,.8)); transition: opacity .22s ease; }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(255,255,255,.32); box-shadow: 0 18px 48px rgba(0,0,0,.32), 0 0 28px rgba(110,231,255,.16); }
+    .btn:hover:not(:disabled)::before { opacity: .95; }
+    .btn.primary { background: linear-gradient(90deg, rgba(110,231,255,.24), rgba(186,124,255,.23), rgba(255,110,199,.22)); }
+    .btn.green { background: rgba(117,247,177,.12); border-color: rgba(117,247,177,.28); }
+    .btn.danger { background: rgba(255,111,145,.13); border-color: rgba(255,111,145,.28); }
+    .btn:disabled { opacity: .48; cursor: not-allowed; }
+
+    .hero { padding: 78px 0 32px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; padding: 8px 13px; border: 1px solid rgba(110,231,255,.30); border-radius: 999px;
+      color: rgba(248,251,255,.82); background: rgba(110,231,255,.08); box-shadow: inset 0 0 22px rgba(110,231,255,.05); font-size: 14px; margin-bottom: 20px;
+    }
+    .pulse-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(117,247,177,.66); animation: pulse 1.8s infinite; }
+    h1 { margin: 0; max-width: 980px; font-size: clamp(46px, 7.8vw, 100px); line-height: .9; letter-spacing: -.075em; }
+    .gradient-text { color: transparent; background: linear-gradient(100deg, #fff 0%, var(--cyan) 26%, var(--violet) 56%, var(--pink) 82%, #fff 100%); -webkit-background-clip: text; background-clip: text; background-size: 220% 100%; animation: textShine 7s ease-in-out infinite; filter: drop-shadow(0 12px 40px rgba(110,231,255,.12)); }
+    .hero-subtitle { max-width: 890px; margin: 22px 0 0; color: var(--muted); font-size: clamp(16px, 1.75vw, 21px); line-height: 1.75; }
+    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top: 26px; }
+
+    .tool-grid { display: grid; grid-template-columns: minmax(0, .88fr) minmax(440px, 1fr); gap: 20px; align-items: start; padding: 28px 0 90px; }
+    .panel {
+      position: relative; border: 1px solid rgba(255,255,255,.15); border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.045)), radial-gradient(circle at 12% 10%, rgba(110,231,255,.13), transparent 35%);
+      box-shadow: 0 20px 70px rgba(0,0,0,.28); overflow: hidden; isolation: isolate;
+    }
+    .panel::before { content: ""; position: absolute; inset: -1px; z-index: -1; background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(110,231,255,.28), transparent 35%); opacity: .66; transition: opacity .18s ease; }
+    .panel-inner { padding: 22px; position: relative; z-index: 1; }
+    .panel h2 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 32px); letter-spacing: -.04em; }
+    .panel p { margin: 0; color: var(--muted); line-height: 1.65; }
+
+    .drop-zone {
+      position: relative; margin-top: 20px; min-height: 220px; display: grid; place-items: center; text-align: center;
+      border: 1.5px dashed rgba(110,231,255,.34); border-radius: 28px;
+      background: radial-gradient(circle at 50% 0%, rgba(110,231,255,.14), transparent 48%), rgba(0,0,0,.18);
+      cursor: pointer; transition: transform .22s ease, border-color .22s ease, background .22s ease; overflow: hidden;
+    }
+    .drop-zone::before { content: ""; position: absolute; inset: auto -25% 24px; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.68), transparent); box-shadow: 0 -36px rgba(255,255,255,.16), 0 -72px rgba(255,255,255,.08), 0 36px rgba(255,255,255,.06); transform: rotate(-10deg); opacity: .55; }
+    .drop-zone:hover, .drop-zone.drag-over { transform: translateY(-3px); border-color: rgba(255,110,199,.50); background: radial-gradient(circle at 50% 0%, rgba(255,110,199,.13), transparent 48%), rgba(0,0,0,.21); }
+    .drop-content { position: relative; z-index: 1; max-width: 470px; padding: 28px; }
+    .upload-icon { width: 74px; height: 74px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 24px; border:1px solid rgba(255,255,255,.16); background: linear-gradient(135deg, rgba(110,231,255,.22), rgba(255,110,199,.14)); box-shadow: 0 0 34px rgba(110,231,255,.10); }
+    .drop-content strong { display: block; margin-bottom: 8px; font-size: 22px; letter-spacing: -.02em; }
+    .drop-content span { display: block; color: var(--muted); line-height: 1.6; }
+    .file-input { display: none; }
+
+    .file-list { display: grid; gap: 10px; margin-top: 18px; }
+    .file-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid rgba(255,255,255,.12); border-radius: 20px; background: rgba(0,0,0,.20); }
+    .file-name { font-weight: 780; word-break: break-all; margin-bottom: 7px; }
+    .meta-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .pill { display:inline-flex; align-items:center; gap:7px; padding:7px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background: rgba(255,255,255,.055); color: rgba(248,251,255,.72); font-size: 12px; }
+
+    .settings { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+    .field { display:grid; gap:8px; }
+    .field.full { grid-column: 1 / -1; }
+    label { color: rgba(248,251,255,.78); font-size: 13px; font-weight: 720; }
+    .select, .input, textarea {
+      width: 100%; border: 1px solid rgba(255,255,255,.15); border-radius: 16px; color: var(--text); background: rgba(0,0,0,.26); outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .select, .input { min-height: 44px; padding: 0 12px; }
+    textarea { min-height: 170px; padding: 12px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.55; }
+    .select:focus, .input:focus, textarea:focus { border-color: rgba(110,231,255,.55); box-shadow: 0 0 0 4px rgba(110,231,255,.08); background: rgba(0,0,0,.32); }
+    .hint { color: var(--faint); font-size: 12px; line-height: 1.5; }
+    .tool-only { display: none; }
+
+    .toolbar { display:flex; flex-wrap:wrap; gap:12px; margin-top: 20px; }
+    .alert { display:none; margin-top: 18px; padding: 14px 16px; border-radius: 18px; border: 1px solid rgba(255,209,102,.25); color: rgba(255,243,205,.92); background: rgba(255,209,102,.10); line-height: 1.6; }
+    .alert.show { display:block; }
+    .alert.error { border-color: rgba(255,111,145,.35); color: rgba(255,225,232,.95); background: rgba(255,111,145,.10); }
+    .alert.success { border-color: rgba(117,247,177,.30); color: rgba(221,255,237,.95); background: rgba(117,247,177,.08); }
+
+    .progress-card { padding: 16px; border-radius: 22px; border:1px solid rgba(255,255,255,.13); background: rgba(0,0,0,.20); margin-top: 18px; }
+    .progress-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 12px; color: var(--muted); font-size: 13px; }
+    .progress-track { height: 11px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; border: 1px solid rgba(255,255,255,.10); }
+    .progress-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink)); box-shadow: 0 0 22px rgba(110,231,255,.35); transition: width .25s ease; }
+
+    .download-list { display:grid; gap:12px; margin-top: 18px; }
+    .download-card { padding: 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.055); display:grid; gap:10px; }
+    .download-top { display:flex; justify-content:space-between; align-items:center; gap: 12px; flex-wrap: wrap; }
+    .download-name { font-weight: 780; word-break: break-all; }
+    .preview { margin-top: 16px; border-radius: 22px; overflow:hidden; border:1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.24); min-height: 380px; display: none; }
+    .preview.show { display:block; }
+    .preview iframe { width:100%; height: 560px; border:0; display:block; background:#111; }
+    .preview textarea { width:100%; min-height: 420px; border:0; border-radius:0; background:rgba(0,0,0,.36); color:var(--text); }
+
+    .info-grid { display: grid; gap: 12px; margin-top: 18px; }
+    .info-item { display:flex; gap:12px; align-items:flex-start; padding: 14px; border:1px solid rgba(255,255,255,.12); border-radius: 20px; background: rgba(255,255,255,.055); }
+    .info-icon { flex:0 0 auto; width: 32px; height: 32px; display:grid; place-items:center; border-radius: 12px; background: linear-gradient(135deg, rgba(110,231,255,.22), rgba(255,110,199,.12)); color: var(--cyan); }
+    .info-item strong { display:block; margin-bottom:3px; }
+    .info-item span { color: var(--muted); line-height:1.55; font-size: 13px; }
+
+    footer { padding: 28px 0 54px; color: rgba(248,251,255,.55); }
+    .footer-inner { display:flex; align-items:center; justify-content:space-between; gap:20px; border-top:1px solid rgba(255,255,255,.11); padding-top: 22px; }
+    .footer-links { display:flex; gap:14px; flex-wrap:wrap; }
+    .footer-links a { color: rgba(248,251,255,.72); }
+    .footer-links a:hover { color: var(--cyan); }
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    @keyframes auroraSpin { 0% { transform: rotate(-6deg) scale(1.02); } 100% { transform: rotate(9deg) scale(1.08); } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(117,247,177,.66); } 70% { box-shadow: 0 0 0 12px rgba(117,247,177,0); } 100% { box-shadow: 0 0 0 0 rgba(117,247,177,0); } }
+    @keyframes textShine { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition: none !important; } .reveal { opacity: 1; transform: none; } }
+    @media (max-width: 1060px) { .tool-grid { grid-template-columns: 1fr; } .nav-links { display:none; } }
+    @media (max-width: 680px) {
+      .wrap { width: min(100% - 28px, 1240px); }
+      .site-header { top: 10px; margin-top: 10px; }
+      .nav { border-radius: 24px; }
+      .brand span:last-child { display:none; }
+      h1 { font-size: clamp(42px, 15vw, 72px); }
+      .panel-inner { padding: 18px; }
+      .settings { grid-template-columns: 1fr; }
+      .btn, .select, .input { width: 100%; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .preview iframe { height: 440px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+
+  <header class="site-header wrap">
+    <nav class="nav" aria-label="主要導覽">
+      <a class="brand" href="/" aria-label="回到首頁"><span class="brand-mark" aria-hidden="true"></span><span>r0b5k3f0</span></a>
+      <div class="nav-links" aria-label="頁面區段">
+        <a href="/">首頁</a>
+        <a href="#toolbox">工具箱</a>
+        <a href="/tools/python-lab/">Python Lab</a>
+        <a href="/tools/video-converter/">影片轉檔</a>
+      </div>
+      <a class="btn" href="/">返回首頁</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div class="reveal">
+        <div class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span> Static PDF Tools · Runs locally in your browser</div>
+        <h1><span class="gradient-text">PDF Toolbox</span><br />private by design.</h1>
+        <p class="hero-subtitle">
+          純靜態、本機端 PDF 工具箱。可合併 PDF、抽取頁面、逐頁分割、旋轉頁面、圖片轉 PDF、抽取文字；
+          檔案在瀏覽器內處理，不會上傳到伺服器。
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#toolbox">開始處理 PDF</a>
+          <a class="btn" href="https://pdf-lib.js.org/" target="_blank" rel="noreferrer">pdf-lib ↗</a>
+          <a class="btn" href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noreferrer">PDF.js ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="toolbox" class="tool-grid wrap">
+      <div class="panel reveal">
+        <div class="panel-inner">
+          <h2>Files</h2>
+          <p>拖拉 PDF 或圖片到這裡。工具會在瀏覽器記憶體中讀取檔案，適合中小型 PDF；大型掃描檔可能較慢。</p>
+          <input id="fileInput" class="file-input" type="file" multiple accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" />
+          <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="選擇或拖拉 PDF / 圖片檔">
+            <div class="drop-content">
+              <div class="upload-icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0-5 5m5-5 5 5M4 16.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <strong>拖拉 PDF / PNG / JPG 到這裡</strong>
+              <span>或點擊選擇檔案。支援多個 PDF 合併與多張圖片轉成單一 PDF。</span>
+            </div>
+          </div>
+          <div id="fileList" class="file-list" aria-live="polite"></div>
+          <div class="toolbar">
+            <button id="clearFilesBtn" class="btn danger" type="button">清除檔案</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel reveal">
+        <div class="panel-inner">
+          <h2>Tool</h2>
+          <p>選擇一項 PDF 工具，設定參數後執行。頁碼支援 <code>1-3,5,last</code>、<code>odd</code>、<code>even</code>、<code>all</code>。</p>
+          <div class="settings">
+            <div class="field full">
+              <label for="toolSelect">工具</label>
+              <select id="toolSelect" class="select">
+                <option value="merge">合併 PDF</option>
+                <option value="extract">抽取頁面成新 PDF</option>
+                <option value="split">逐頁分割 PDF</option>
+                <option value="rotate">旋轉頁面</option>
+                <option value="images">圖片轉 PDF</option>
+                <option value="text">抽取文字 TXT</option>
+              </select>
+            </div>
+
+            <div class="field full tool-only pdf-source">
+              <label for="pdfSelect">選擇 PDF</label>
+              <select id="pdfSelect" class="select"></select>
+            </div>
+
+            <div class="field tool-only pages-field">
+              <label for="pageRange">頁碼範圍</label>
+              <input id="pageRange" class="input" type="text" value="all" placeholder="例如 1-3,5,last" />
+              <div class="hint">可輸入 <code>all</code>、<code>odd</code>、<code>even</code>、<code>1-3,5,last</code>。</div>
+            </div>
+
+            <div class="field tool-only rotate-field">
+              <label for="rotationAngle">旋轉角度</label>
+              <select id="rotationAngle" class="select">
+                <option value="90">順時針 90°</option>
+                <option value="180">180°</option>
+                <option value="270">順時針 270°</option>
+              </select>
+            </div>
+
+            <div class="field tool-only images-field">
+              <label for="pageSize">圖片 PDF 頁面</label>
+              <select id="pageSize" class="select">
+                <option value="auto">依圖片大小</option>
+                <option value="a4p">A4 直式</option>
+                <option value="a4l">A4 橫式</option>
+                <option value="letter">Letter</option>
+              </select>
+            </div>
+
+            <div class="field tool-only images-field">
+              <label for="imageMargin">邊界 pt</label>
+              <input id="imageMargin" class="input" type="number" min="0" max="144" value="36" />
+              <div class="hint">72 pt 約等於 1 inch。</div>
+            </div>
+
+            <div class="field full tool-only output-name-field">
+              <label for="outputName">輸出檔名</label>
+              <input id="outputName" class="input" type="text" value="r0b5k3f0-output" />
+            </div>
+          </div>
+
+          <div id="message" class="alert" role="status" aria-live="polite"></div>
+
+          <div class="toolbar">
+            <button id="runBtn" class="btn primary" type="button">執行工具</button>
+            <button id="clearOutputsBtn" class="btn" type="button">清除輸出</button>
+          </div>
+
+          <div class="progress-card">
+            <div class="progress-top"><span id="statusText">等待檔案</span><span id="progressNumber">0%</span></div>
+            <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+          </div>
+
+          <div id="downloadList" class="download-list"></div>
+          <div id="preview" class="preview"></div>
+
+          <div class="info-grid">
+            <div class="info-item"><div class="info-icon">🔒</div><div><strong>本機端處理</strong><span>PDF 與圖片檔案不會離開你的瀏覽器；本站沒有後端接收檔案。</span></div></div>
+            <div class="info-item"><div class="info-icon">🧩</div><div><strong>靜態依賴</strong><span>pdf-lib 與 PDF.js 已放在本站靜態檔案中，頁面本身可由 GitHub Pages 提供。</span></div></div>
+            <div class="info-item"><div class="info-icon">⚠️</div><div><strong>限制</strong><span>加密 PDF、受保護表單或超大型掃描檔可能無法處理或需要較久時間。</span></div></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <div class="footer-inner">
+      <div>© <span id="year"></span> r0b5k3f0 · PDF Toolbox on GitHub Pages</div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/tools/python-lab/">Python Lab</a>
+        <a href="/tools/video-converter/">Video Converter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./vendor/pdf-lib.min.js"></script>
+  <script src="./vendor/pdf.min.js"></script>
+  <script>
+    'use strict';
+
+    const $ = (selector) => document.querySelector(selector);
+    const { PDFDocument, degrees } = PDFLib;
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = './vendor/pdf.worker.min.js';
+    }
+
+    const state = {
+      files: [],
+      objectUrls: [],
+      busy: false
+    };
+
+    const els = {
+      dropZone: $('#dropZone'),
+      fileInput: $('#fileInput'),
+      fileList: $('#fileList'),
+      clearFilesBtn: $('#clearFilesBtn'),
+      toolSelect: $('#toolSelect'),
+      pdfSelect: $('#pdfSelect'),
+      pageRange: $('#pageRange'),
+      rotationAngle: $('#rotationAngle'),
+      pageSize: $('#pageSize'),
+      imageMargin: $('#imageMargin'),
+      outputName: $('#outputName'),
+      runBtn: $('#runBtn'),
+      clearOutputsBtn: $('#clearOutputsBtn'),
+      message: $('#message'),
+      statusText: $('#statusText'),
+      progressNumber: $('#progressNumber'),
+      progressBar: $('#progressBar'),
+      downloadList: $('#downloadList'),
+      preview: $('#preview')
+    };
+
+    $('#year').textContent = new Date().getFullYear();
+
+    function formatBytes(bytes) {
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let value = bytes;
+      let idx = 0;
+      while (value >= 1024 && idx < units.length - 1) {
+        value /= 1024;
+        idx += 1;
+      }
+      return value.toFixed(value >= 10 || idx === 0 ? 0 : 1) + ' ' + units[idx];
+    }
+
+    function safeName(name) {
+      return String(name || 'output').replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'output';
+    }
+
+    function setProgress(percent, text) {
+      const value = Math.max(0, Math.min(100, percent));
+      els.progressBar.style.width = value.toFixed(1) + '%';
+      els.progressNumber.textContent = value.toFixed(0) + '%';
+      if (text) els.statusText.textContent = text;
+    }
+
+    function showMessage(text, type = 'warn') {
+      els.message.textContent = text;
+      els.message.className = 'alert show ' + type;
+    }
+
+    function hideMessage() {
+      els.message.textContent = '';
+      els.message.className = 'alert';
+    }
+
+    function setBusy(busy) {
+      state.busy = busy;
+      els.runBtn.disabled = busy;
+      els.fileInput.disabled = busy;
+      els.clearFilesBtn.disabled = busy;
+      els.clearOutputsBtn.disabled = busy;
+      els.runBtn.textContent = busy ? '處理中…' : '執行工具';
+    }
+
+    function isPdf(file) {
+      return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    }
+
+    function isImage(file) {
+      return /^image\/(png|jpe?g)$/i.test(file.type) || /\.(png|jpe?g)$/i.test(file.name);
+    }
+
+    async function bytesOf(item) {
+      if (!item.bytes) item.bytes = new Uint8Array(await item.file.arrayBuffer());
+      return item.bytes;
+    }
+
+    async function loadPdfDoc(item) {
+      const bytes = await bytesOf(item);
+      return PDFDocument.load(bytes, { ignoreEncryption: true });
+    }
+
+    async function addFiles(files) {
+      hideMessage();
+      const incoming = Array.from(files || []);
+      if (!incoming.length) return;
+      setProgress(3, '讀取檔案…');
+      for (const file of incoming) {
+        if (!isPdf(file) && !isImage(file)) {
+          showMessage('已略過不支援的檔案：' + file.name, 'warn');
+          continue;
+        }
+        const item = {
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+          file,
+          type: isPdf(file) ? 'pdf' : 'image',
+          pages: null,
+          bytes: null
+        };
+        state.files.push(item);
+        if (item.type === 'pdf') {
+          try {
+            const doc = await loadPdfDoc(item);
+            item.pages = doc.getPageCount();
+          } catch (error) {
+            item.pages = '?';
+            showMessage('PDF 頁數讀取失敗：' + file.name + '。可能是加密或格式特殊的 PDF。', 'warn');
+          }
+        }
+      }
+      renderFiles();
+      setProgress(0, state.files.length ? '已載入檔案，請選擇工具' : '等待檔案');
+    }
+
+    function renderFiles() {
+      els.fileList.innerHTML = '';
+      for (const item of state.files) {
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        const info = document.createElement('div');
+        const name = document.createElement('div');
+        name.className = 'file-name';
+        name.textContent = item.file.name;
+        const meta = document.createElement('div');
+        meta.className = 'meta-row';
+        const metas = [item.type.toUpperCase(), formatBytes(item.file.size)];
+        if (item.type === 'pdf') metas.push(String(item.pages ?? '?') + ' pages');
+        metas.forEach((text) => {
+          const pill = document.createElement('span');
+          pill.className = 'pill';
+          pill.textContent = text;
+          meta.appendChild(pill);
+        });
+        info.append(name, meta);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'btn danger';
+        remove.textContent = '移除';
+        remove.addEventListener('click', () => {
+          state.files = state.files.filter((file) => file.id !== item.id);
+          renderFiles();
+        });
+        card.append(info, remove);
+        els.fileList.appendChild(card);
+      }
+      updatePdfSelect();
+    }
+
+    function updatePdfSelect() {
+      const pdfs = state.files.filter((item) => item.type === 'pdf');
+      const current = els.pdfSelect.value;
+      els.pdfSelect.innerHTML = '';
+      for (const item of pdfs) {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.file.name + (item.pages ? ' · ' + item.pages + ' pages' : '');
+        els.pdfSelect.appendChild(option);
+      }
+      if ([...els.pdfSelect.options].some((option) => option.value === current)) els.pdfSelect.value = current;
+    }
+
+    function selectedPdf() {
+      const id = els.pdfSelect.value;
+      return state.files.find((item) => item.id === id && item.type === 'pdf') || state.files.find((item) => item.type === 'pdf');
+    }
+
+    function parsePageRange(input, max, { unique = true } = {}) {
+      const raw = String(input || 'all').trim().toLowerCase();
+      if (!raw || raw === 'all' || raw === '*') return Array.from({ length: max }, (_, index) => index);
+      const result = [];
+      const pushPage = (page) => {
+        if (!Number.isInteger(page) || page < 1 || page > max) throw new Error('頁碼超出範圍：' + page + '，此 PDF 有 ' + max + ' 頁。');
+        if (!unique || !result.includes(page - 1)) result.push(page - 1);
+      };
+      const toPage = (value) => {
+        const token = value.trim();
+        if (token === 'last' || token === 'end') return max;
+        const page = Number.parseInt(token, 10);
+        if (!Number.isInteger(page)) throw new Error('無法解析頁碼：' + value);
+        return page;
+      };
+      for (const part of raw.split(',')) {
+        const token = part.trim();
+        if (!token) continue;
+        if (token === 'odd') {
+          for (let page = 1; page <= max; page += 2) pushPage(page);
+          continue;
+        }
+        if (token === 'even') {
+          for (let page = 2; page <= max; page += 2) pushPage(page);
+          continue;
+        }
+        const dash = token.match(/^(.+?)-(.+)$/);
+        if (dash) {
+          const start = toPage(dash[1]);
+          const end = toPage(dash[2]);
+          const step = start <= end ? 1 : -1;
+          for (let page = start; step > 0 ? page <= end : page >= end; page += step) pushPage(page);
+          continue;
+        }
+        pushPage(toPage(token));
+      }
+      if (!result.length) throw new Error('沒有選到任何頁面。');
+      return result;
+    }
+
+    function clearOutputs() {
+      for (const url of state.objectUrls) URL.revokeObjectURL(url);
+      state.objectUrls = [];
+      els.downloadList.innerHTML = '';
+      els.preview.innerHTML = '';
+      els.preview.classList.remove('show');
+      setProgress(0, state.files.length ? '已載入檔案，請選擇工具' : '等待檔案');
+    }
+
+    function addDownload(name, blob, previewType = 'pdf') {
+      const url = URL.createObjectURL(blob);
+      state.objectUrls.push(url);
+      const card = document.createElement('div');
+      card.className = 'download-card';
+      const top = document.createElement('div');
+      top.className = 'download-top';
+      const filename = document.createElement('div');
+      filename.className = 'download-name';
+      filename.textContent = name;
+      const meta = document.createElement('span');
+      meta.className = 'pill';
+      meta.textContent = formatBytes(blob.size);
+      top.append(filename, meta);
+      const actions = document.createElement('div');
+      actions.className = 'toolbar';
+      actions.style.marginTop = '0';
+      const link = document.createElement('a');
+      link.className = 'btn primary';
+      link.href = url;
+      link.download = name;
+      link.textContent = '下載';
+      const previewBtn = document.createElement('button');
+      previewBtn.type = 'button';
+      previewBtn.className = 'btn';
+      previewBtn.textContent = '預覽';
+      previewBtn.addEventListener('click', () => showPreview(url, previewType, blob));
+      actions.append(link, previewBtn);
+      card.append(top, actions);
+      els.downloadList.prepend(card);
+      showPreview(url, previewType, blob);
+    }
+
+    async function showPreview(url, type, blob) {
+      els.preview.innerHTML = '';
+      els.preview.classList.add('show');
+      if (type === 'text') {
+        const textarea = document.createElement('textarea');
+        textarea.readOnly = true;
+        textarea.value = await blob.text();
+        els.preview.appendChild(textarea);
+        return;
+      }
+      const iframe = document.createElement('iframe');
+      iframe.title = 'PDF preview';
+      iframe.src = url;
+      els.preview.appendChild(iframe);
+    }
+
+    function outputBaseName() {
+      return safeName(els.outputName.value || 'r0b5k3f0-output');
+    }
+
+    async function mergePdfs() {
+      const pdfs = state.files.filter((item) => item.type === 'pdf');
+      if (pdfs.length < 2) throw new Error('合併 PDF 至少需要 2 個 PDF 檔案。');
+      const out = await PDFDocument.create();
+      let copied = 0;
+      for (let i = 0; i < pdfs.length; i++) {
+        setProgress(10 + (i / pdfs.length) * 70, '合併中：' + pdfs[i].file.name);
+        const src = await loadPdfDoc(pdfs[i]);
+        const pages = await out.copyPages(src, src.getPageIndices());
+        pages.forEach((page) => out.addPage(page));
+        copied += pages.length;
+      }
+      out.setTitle(outputBaseName());
+      out.setProducer('r0b5k3f0 PDF Toolbox');
+      const bytes = await out.save();
+      addDownload(outputBaseName() + '-merged.pdf', new Blob([bytes], { type: 'application/pdf' }), 'pdf');
+      return '已合併 ' + pdfs.length + ' 個 PDF，共 ' + copied + ' 頁。';
+    }
+
+    async function extractPages() {
+      const item = selectedPdf();
+      if (!item) throw new Error('請先載入並選擇 PDF。');
+      const src = await loadPdfDoc(item);
+      const indexes = parsePageRange(els.pageRange.value, src.getPageCount(), { unique: false });
+      const out = await PDFDocument.create();
+      const pages = await out.copyPages(src, indexes);
+      pages.forEach((page) => out.addPage(page));
+      out.setTitle(outputBaseName());
+      out.setProducer('r0b5k3f0 PDF Toolbox');
+      const bytes = await out.save();
+      addDownload(outputBaseName() + '-pages.pdf', new Blob([bytes], { type: 'application/pdf' }), 'pdf');
+      return '已抽取 ' + indexes.length + ' 頁。';
+    }
+
+    async function splitPages() {
+      const item = selectedPdf();
+      if (!item) throw new Error('請先載入並選擇 PDF。');
+      const src = await loadPdfDoc(item);
+      const indexes = parsePageRange(els.pageRange.value, src.getPageCount(), { unique: true });
+      if (indexes.length > 120) throw new Error('一次分割頁數過多。請先限制頁碼範圍，例如 1-50。');
+      for (let i = 0; i < indexes.length; i++) {
+        const pageIndex = indexes[i];
+        setProgress(10 + (i / indexes.length) * 80, '分割第 ' + (pageIndex + 1) + ' 頁…');
+        const out = await PDFDocument.create();
+        const [page] = await out.copyPages(src, [pageIndex]);
+        out.addPage(page);
+        const bytes = await out.save();
+        addDownload(outputBaseName() + '-page-' + String(pageIndex + 1).padStart(3, '0') + '.pdf', new Blob([bytes], { type: 'application/pdf' }), 'pdf');
+      }
+      return '已產生 ' + indexes.length + ' 個單頁 PDF。';
+    }
+
+    async function rotatePages() {
+      const item = selectedPdf();
+      if (!item) throw new Error('請先載入並選擇 PDF。');
+      const doc = await loadPdfDoc(item);
+      const pages = doc.getPages();
+      const indexes = parsePageRange(els.pageRange.value, pages.length, { unique: true });
+      const angle = Number.parseInt(els.rotationAngle.value, 10);
+      for (const index of indexes) {
+        const page = pages[index];
+        const current = page.getRotation().angle || 0;
+        page.setRotation(degrees((current + angle) % 360));
+      }
+      doc.setProducer('r0b5k3f0 PDF Toolbox');
+      const bytes = await doc.save();
+      addDownload(outputBaseName() + '-rotated.pdf', new Blob([bytes], { type: 'application/pdf' }), 'pdf');
+      return '已旋轉 ' + indexes.length + ' 頁。';
+    }
+
+    function pageDimensions(size, image, margin) {
+      if (size === 'a4p') return [595.28, 841.89];
+      if (size === 'a4l') return [841.89, 595.28];
+      if (size === 'letter') return [612, 792];
+      return [image.width + margin * 2, image.height + margin * 2];
+    }
+
+    async function imagesToPdf() {
+      const images = state.files.filter((item) => item.type === 'image');
+      if (!images.length) throw new Error('請先載入 PNG 或 JPG 圖片。');
+      const pdf = await PDFDocument.create();
+      const margin = Math.max(0, Number.parseFloat(els.imageMargin.value) || 0);
+      for (let i = 0; i < images.length; i++) {
+        const item = images[i];
+        setProgress(10 + (i / images.length) * 75, '嵌入圖片：' + item.file.name);
+        const bytes = await bytesOf(item);
+        const image = /png$/i.test(item.file.name) || item.file.type === 'image/png' ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+        const [pageW, pageH] = pageDimensions(els.pageSize.value, image, margin);
+        const page = pdf.addPage([pageW, pageH]);
+        const usableW = pageW - margin * 2;
+        const usableH = pageH - margin * 2;
+        const scale = Math.min(usableW / image.width, usableH / image.height, 1);
+        const drawW = image.width * scale;
+        const drawH = image.height * scale;
+        page.drawImage(image, { x: (pageW - drawW) / 2, y: (pageH - drawH) / 2, width: drawW, height: drawH });
+      }
+      pdf.setTitle(outputBaseName());
+      pdf.setProducer('r0b5k3f0 PDF Toolbox');
+      const out = await pdf.save();
+      addDownload(outputBaseName() + '-images.pdf', new Blob([out], { type: 'application/pdf' }), 'pdf');
+      return '已將 ' + images.length + ' 張圖片轉成 PDF。';
+    }
+
+    async function extractText() {
+      if (!window.pdfjsLib) throw new Error('PDF.js 尚未載入。');
+      const item = selectedPdf();
+      if (!item) throw new Error('請先載入並選擇 PDF。');
+      const bytes = await bytesOf(item);
+      const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(bytes) });
+      const pdf = await loadingTask.promise;
+      const indexes = parsePageRange(els.pageRange.value, pdf.numPages, { unique: true });
+      const chunks = [];
+      for (let i = 0; i < indexes.length; i++) {
+        const pageNumber = indexes[i] + 1;
+        setProgress(10 + (i / indexes.length) * 80, '抽取文字：第 ' + pageNumber + ' 頁');
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+        const lines = [];
+        let lastY = null;
+        let line = [];
+        for (const item of content.items) {
+          const y = Math.round(item.transform[5]);
+          if (lastY !== null && Math.abs(y - lastY) > 4) {
+            lines.push(line.join(' ').trim());
+            line = [];
+          }
+          line.push(item.str);
+          lastY = y;
+        }
+        if (line.length) lines.push(line.join(' ').trim());
+        chunks.push('--- Page ' + pageNumber + ' ---\n' + lines.filter(Boolean).join('\n'));
+      }
+      const text = chunks.join('\n\n');
+      addDownload(outputBaseName() + '-text.txt', new Blob([text], { type: 'text/plain;charset=utf-8' }), 'text');
+      return '已抽取 ' + indexes.length + ' 頁文字。';
+    }
+
+    async function runTool() {
+      if (state.busy) return;
+      clearOutputs();
+      hideMessage();
+      setBusy(true);
+      setProgress(2, '準備中…');
+      try {
+        const tool = els.toolSelect.value;
+        let summary = '';
+        if (tool === 'merge') summary = await mergePdfs();
+        if (tool === 'extract') summary = await extractPages();
+        if (tool === 'split') summary = await splitPages();
+        if (tool === 'rotate') summary = await rotatePages();
+        if (tool === 'images') summary = await imagesToPdf();
+        if (tool === 'text') summary = await extractText();
+        setProgress(100, '完成');
+        showMessage(summary || '已完成。', 'success');
+      } catch (error) {
+        console.error(error);
+        setProgress(0, '失敗');
+        showMessage('處理失敗：' + (error && error.message ? error.message : String(error)), 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function updateToolUI() {
+      const tool = els.toolSelect.value;
+      document.querySelectorAll('.tool-only').forEach((el) => { el.style.display = 'none'; });
+      const show = (selector) => document.querySelectorAll(selector).forEach((el) => { el.style.display = 'grid'; });
+      if (['extract', 'split', 'rotate', 'text'].includes(tool)) show('.pdf-source, .pages-field');
+      if (tool === 'rotate') show('.rotate-field');
+      if (tool === 'images') show('.images-field');
+      show('.output-name-field');
+      if (tool === 'merge') setProgress(0, '合併會依照檔案載入順序處理');
+      else if (tool === 'images') setProgress(0, '圖片會依照檔案載入順序轉 PDF');
+      else setProgress(0, '請選擇 PDF 與頁碼範圍');
+    }
+
+    els.dropZone.addEventListener('click', () => els.fileInput.click());
+    els.dropZone.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        els.fileInput.click();
+      }
+    });
+    els.fileInput.addEventListener('change', () => addFiles(els.fileInput.files));
+    ['dragenter', 'dragover'].forEach((name) => {
+      els.dropZone.addEventListener(name, (event) => {
+        event.preventDefault();
+        els.dropZone.classList.add('drag-over');
+      });
+    });
+    ['dragleave', 'drop'].forEach((name) => {
+      els.dropZone.addEventListener(name, (event) => {
+        event.preventDefault();
+        els.dropZone.classList.remove('drag-over');
+      });
+    });
+    els.dropZone.addEventListener('drop', (event) => addFiles(event.dataTransfer.files));
+    els.clearFilesBtn.addEventListener('click', () => {
+      if (state.busy) return;
+      state.files = [];
+      els.fileInput.value = '';
+      renderFiles();
+      clearOutputs();
+      hideMessage();
+      setProgress(0, '等待檔案');
+    });
+    els.clearOutputsBtn.addEventListener('click', () => { clearOutputs(); hideMessage(); });
+    els.runBtn.addEventListener('click', runTool);
+    els.toolSelect.addEventListener('change', updateToolUI);
+
+    // Visual effects
+    const cursor = document.querySelector('.cursor-glow');
+    window.addEventListener('pointermove', (event) => {
+      cursor.style.opacity = '.82';
+      cursor.style.left = event.clientX + 'px';
+      cursor.style.top = event.clientY + 'px';
+    }, { passive: true });
+    window.addEventListener('pointerleave', () => { cursor.style.opacity = '0'; });
+    document.querySelectorAll('.panel').forEach((panel) => {
+      panel.addEventListener('pointermove', (event) => {
+        const rect = panel.getBoundingClientRect();
+        panel.style.setProperty('--mx', ((event.clientX - rect.left) / rect.width * 100).toFixed(2) + '%');
+        panel.style.setProperty('--my', ((event.clientY - rect.top) / rect.height * 100).toFixed(2) + '%');
+      }, { passive: true });
+    });
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach((el, index) => {
+      el.style.transitionDelay = Math.min(index * 45, 280) + 'ms';
+      observer.observe(el);
+    });
+
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let stars = [];
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    function resizeStars() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.min(160, Math.floor((width * height) / 9000));
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z: Math.random() * 0.8 + 0.2,
+        r: Math.random() * 1.35 + 0.35,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
+        hue: [190, 230, 275, 320][Math.floor(Math.random() * 4)]
+      }));
+    }
+    function drawStars() {
+      ctx.clearRect(0, 0, width, height);
+      for (const star of stars) {
+        if (!prefersReducedMotion) {
+          star.x += star.vx * star.z;
+          star.y += star.vy * star.z;
+          if (star.x < -10) star.x = width + 10;
+          if (star.x > width + 10) star.x = -10;
+          if (star.y < -10) star.y = height + 10;
+          if (star.y > height + 10) star.y = -10;
+        }
+        const alpha = 0.22 + star.z * 0.55;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r * star.z, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${star.hue}, 100%, 78%, ${alpha})`;
+        ctx.shadowBlur = 12 * star.z;
+        ctx.shadowColor = `hsla(${star.hue}, 100%, 70%, .75)`;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      if (!prefersReducedMotion) requestAnimationFrame(drawStars);
+    }
+
+    updateToolUI();
+    updatePdfSelect();
+    window.addEventListener('resize', resizeStars, { passive: true });
+    resizeStars();
+    drawStars();
+  </script>
+</body>
+</html>

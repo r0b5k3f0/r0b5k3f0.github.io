@@ -24,6 +24,7 @@ SVG favicon set:
 ## Tools
 
 - `/tools/video-converter/` — browser-only FFmpeg WebAssembly video converter. It runs entirely as a static GitHub Pages app and uses ffmpeg.wasm in the user's browser.
+- `/tools/pdf-toolbox/` — local browser PDF toolbox for merge, extract, split, rotate, images-to-PDF, and text extraction.
 - `/tools/python-lab/` — browser-only Python IDE powered by Pyodide/WebAssembly.
 - `/tools/jupyter/lab/` — JupyterLite notebook environment with Python (Pyodide) kernel.
 
@@ -37,3 +38,13 @@ The converter vendors the single-thread ffmpeg.wasm runtime under `/tools/video-
 
 - Python Lab loads Pyodide from a public static CDN and executes code locally in the browser.
 - JupyterLite is built as static assets under `/tools/jupyter/`; notebooks and user files are stored in the browser by JupyterLite.
+
+
+### PDF assets
+
+The PDF Toolbox vendors browser-side PDF libraries under `/tools/pdf-toolbox/vendor/`:
+
+- `pdf-lib` for PDF creation/modification.
+- `PDF.js` for text extraction and PDF parsing.
+
+Uploaded PDFs/images are processed in the user's browser and are not sent to a backend.
