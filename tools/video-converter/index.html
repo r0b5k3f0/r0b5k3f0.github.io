@@ -740,19 +740,16 @@
       {
         name: 'local GitHub Pages vendor',
         ffmpeg: '/tools/video-converter/vendor/ffmpeg/ffmpeg.js',
-        util: '/tools/video-converter/vendor/ffmpeg/ffmpeg-util.js',
         core: '/tools/video-converter/vendor/ffmpeg'
       },
       {
         name: 'jsDelivr fallback',
         ffmpeg: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
-        util: 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/umd/index.js',
         core: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
       },
       {
         name: 'unpkg fallback',
         ffmpeg: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
-        util: 'https://unpkg.com/@ffmpeg/util@0.12.2/dist/umd/index.js',
         core: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd'
       }
     ];
@@ -1081,24 +1078,41 @@
     }
 
     async function ensureLibraries() {
-      if (getGlobalNamespace('FFmpegWASM') && getGlobalNamespace('FFmpegUtil')) return FFMPEG_SOURCES[0];
+      if (getGlobalNamespace('FFmpegWASM')) return FFMPEG_SOURCES[0];
       let lastError = null;
       for (const source of FFMPEG_SOURCES) {
         try {
           appendLog('Loading ffmpeg.wasm wrapper from ' + source.name + '…');
           await loadScript(source.ffmpeg);
-          await loadScript(source.util);
-          if (getGlobalNamespace('FFmpegWASM') && getGlobalNamespace('FFmpegUtil')) {
+          if (getGlobalNamespace('FFmpegWASM')) {
             appendLog('Wrapper loaded: ' + source.name, 'ok');
             return source;
           }
-          throw new Error('FFmpegWASM / FFmpegUtil namespace not found');
+          throw new Error('FFmpegWASM namespace not found');
         } catch (error) {
           lastError = error;
           appendLog('Source failed (' + source.name + '): ' + error.message, 'warn');
         }
       }
       throw lastError || new Error('無法載入 FFmpeg WASM wrapper。');
+    }
+
+    async function toBlobURL(url, mimeType) {
+      const response = await fetch(url, { cache: 'force-cache' });
+      if (!response.ok) throw new Error('無法下載 FFmpeg 資源：' + url + ' (' + response.status + ')');
+      const buffer = await response.arrayBuffer();
+      return URL.createObjectURL(new Blob([buffer], { type: mimeType }));
+    }
+
+    async function fetchFile(file) {
+      if (file instanceof Uint8Array) return file;
+      if (file instanceof Blob) return new Uint8Array(await file.arrayBuffer());
+      if (typeof file === 'string' || file instanceof URL) {
+        const response = await fetch(file);
+        if (!response.ok) throw new Error('無法讀取檔案：' + file);
+        return new Uint8Array(await response.arrayBuffer());
+      }
+      return new Uint8Array();
     }
 
     function bindFFmpegEvents(ffmpeg) {
@@ -1116,7 +1130,6 @@
     async function ensureFFmpegLoaded(preferredCdn) {
       if (state.loaded && state.ffmpeg) return;
       const { FFmpeg } = getGlobalNamespace('FFmpegWASM');
-      const { toBlobURL } = getGlobalNamespace('FFmpegUtil');
       const ordered = [preferredCdn, ...FFMPEG_SOURCES.filter((source) => source !== preferredCdn)].filter(Boolean);
       let lastError = null;
       for (const cdn of ordered) {
@@ -1169,7 +1182,6 @@
         const cdn = await ensureLibraries();
         await ensureFFmpegLoaded(cdn);
 
-        const { fetchFile } = getGlobalNamespace('FFmpegUtil');
         const inputExt = getExt(state.file.name);
         const outputExt = outputExtForPreset();
         const inputName = safeVirtualName('input', inputExt);
