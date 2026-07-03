@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="r0b5k3f0 的純靜態 Python Lab：使用 Pyodide 在瀏覽器內執行 Python，無需後端伺服器。" />
+  <meta name="theme-color" content="#090A1A" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="mask-icon" href="/favicons/favicon-mask.svg" color="#6ee7ff" />
+  <title>Python Lab · r0b5k3f0</title>
+  <style>
+    :root {
+      --bg: #070812;
+      --bg-2: #0d1026;
+      --text: #f8fbff;
+      --muted: rgba(248, 251, 255, .68);
+      --faint: rgba(248, 251, 255, .48);
+      --line: rgba(255, 255, 255, .15);
+      --cyan: #6ee7ff;
+      --violet: #ba7cff;
+      --pink: #ff6ec7;
+      --gold: #ffd166;
+      --green: #75f7b1;
+      --red: #ff6f91;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .48);
+      --radius: 28px;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 16% 8%, rgba(110, 231, 255, .28), transparent 30%),
+        radial-gradient(circle at 82% 12%, rgba(255, 110, 199, .22), transparent 30%),
+        radial-gradient(circle at 50% 84%, rgba(186, 124, 255, .25), transparent 38%),
+        linear-gradient(135deg, #050611 0%, #0b0d24 50%, #14081d 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -4;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 58px 58px;
+      mask-image: radial-gradient(circle at 50% 16%, #000 0 52%, transparent 86%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      opacity: .055;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.72'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+
+    ::selection { background: rgba(110, 231, 255, .35); }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    code { color: var(--cyan); }
+
+    #stars {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -3;
+      pointer-events: none;
+    }
+
+    .aurora {
+      position: fixed;
+      inset: -22vh -20vw;
+      z-index: -5;
+      background:
+        conic-gradient(from 120deg at 30% 40%, rgba(110,231,255,.13), transparent 23%, rgba(255,110,199,.16), transparent 56%, rgba(117,247,177,.10), rgba(110,231,255,.13)),
+        conic-gradient(from 260deg at 70% 58%, rgba(186,124,255,.20), transparent 25%, rgba(255,209,102,.10), transparent 62%, rgba(110,231,255,.14));
+      filter: blur(58px) saturate(1.25);
+      animation: auroraSpin 26s linear infinite alternate;
+      opacity: .95;
+    }
+
+    .cursor-glow {
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      left: 0;
+      top: 0;
+      z-index: -2;
+      border-radius: 999px;
+      pointer-events: none;
+      translate: -50% -50%;
+      background: radial-gradient(circle, rgba(110,231,255,.20), rgba(186,124,255,.08) 42%, transparent 72%);
+      filter: blur(12px);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .wrap { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+
+    .site-header {
+      position: sticky;
+      top: 16px;
+      z-index: 30;
+      margin-top: 16px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 999px;
+      background: rgba(7, 8, 18, .56);
+      backdrop-filter: blur(22px) saturate(1.35);
+      box-shadow: 0 16px 50px rgba(0,0,0,.24);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 850;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, rgba(110,231,255,.95), rgba(186,124,255,.95) 52%, rgba(255,110,199,.95));
+      box-shadow: 0 0 30px rgba(110,231,255,.32), inset 0 0 18px rgba(255,255,255,.28);
+      overflow: hidden;
+    }
+    .brand-mark::before, .brand-mark::after {
+      content: "";
+      position: absolute;
+      border-radius: inherit;
+      inset: 8px;
+      border: 1px solid rgba(255,255,255,.72);
+      transform: rotate(45deg);
+    }
+    .brand-mark::after { inset: 14px; background: rgba(5,6,17,.7); border: 0; }
+
+    .nav-links { display: flex; align-items: center; gap: 6px; color: rgba(248,251,255,.78); font-size: 14px; }
+    .nav-links a { padding: 10px 13px; border-radius: 999px; transition: background .2s ease, color .2s ease, transform .2s ease; }
+    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,.1); transform: translateY(-1px); }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 12px 34px rgba(0,0,0,.22);
+      overflow: hidden;
+      isolation: isolate;
+      transition: transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease, opacity .2s ease;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .btn::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      z-index: -1;
+      opacity: 0;
+      background: linear-gradient(90deg, rgba(110,231,255,.8), rgba(186,124,255,.82), rgba(255,110,199,.8));
+      transition: opacity .22s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(255,255,255,.32); box-shadow: 0 18px 48px rgba(0,0,0,.32), 0 0 28px rgba(110,231,255,.16); }
+    .btn:hover:not(:disabled)::before { opacity: .95; }
+    .btn.primary { background: linear-gradient(90deg, rgba(110,231,255,.24), rgba(186,124,255,.23), rgba(255,110,199,.22)); }
+    .btn.green { background: rgba(117,247,177,.12); border-color: rgba(117,247,177,.28); }
+    .btn.danger { background: rgba(255,111,145,.13); border-color: rgba(255,111,145,.28); }
+    .btn:disabled { opacity: .48; cursor: not-allowed; }
+
+    .hero { padding: 78px 0 32px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 13px;
+      border: 1px solid rgba(110,231,255,.30);
+      border-radius: 999px;
+      color: rgba(248,251,255,.82);
+      background: rgba(110,231,255,.08);
+      box-shadow: inset 0 0 22px rgba(110,231,255,.05);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .pulse-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(117,247,177,.66); animation: pulse 1.8s infinite; }
+    h1 { margin: 0; max-width: 980px; font-size: clamp(46px, 7.8vw, 100px); line-height: .9; letter-spacing: -.075em; }
+    .gradient-text { color: transparent; background: linear-gradient(100deg, #fff 0%, var(--cyan) 26%, var(--violet) 56%, var(--pink) 82%, #fff 100%); -webkit-background-clip: text; background-clip: text; background-size: 220% 100%; animation: textShine 7s ease-in-out infinite; filter: drop-shadow(0 12px 40px rgba(110,231,255,.12)); }
+    .hero-subtitle { max-width: 850px; margin: 22px 0 0; color: var(--muted); font-size: clamp(16px, 1.75vw, 21px); line-height: 1.75; }
+    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top: 26px; }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(360px, .72fr);
+      gap: 20px;
+      align-items: start;
+      padding: 28px 0 90px;
+    }
+
+    .panel {
+      position: relative;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.045)),
+        radial-gradient(circle at 12% 10%, rgba(110,231,255,.13), transparent 35%);
+      box-shadow: 0 20px 70px rgba(0,0,0,.28);
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      z-index: -1;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(110,231,255,.28), transparent 35%);
+      opacity: .66;
+      transition: opacity .18s ease;
+    }
+    .panel-inner { padding: 22px; position: relative; z-index: 1; }
+    .panel h2 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 32px); letter-spacing: -.04em; }
+    .panel p { margin: 0; color: var(--muted); line-height: 1.65; }
+
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 20px 0 14px; }
+    .toolbar-left, .toolbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+    .select, .input {
+      min-height: 42px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 16px;
+      color: var(--text);
+      background: rgba(0,0,0,.26);
+      outline: none;
+      padding: 0 12px;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .select:focus, .input:focus { border-color: rgba(110,231,255,.55); box-shadow: 0 0 0 4px rgba(110,231,255,.08); background: rgba(0,0,0,.32); }
+
+    .editor-shell {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      min-height: 540px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(0,0,0,.30);
+      box-shadow: inset 0 0 40px rgba(110,231,255,.04);
+    }
+    .line-numbers {
+      margin: 0;
+      padding: 18px 10px 18px 0;
+      text-align: right;
+      color: rgba(248,251,255,.34);
+      background: rgba(255,255,255,.035);
+      border-right: 1px solid rgba(255,255,255,.09);
+      overflow: hidden;
+      user-select: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      line-height: 1.62;
+    }
+    #editor {
+      width: 100%;
+      min-height: 540px;
+      resize: vertical;
+      border: 0;
+      outline: none;
+      color: #f8fbff;
+      background: transparent;
+      padding: 18px 18px 18px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 14px;
+      line-height: 1.62;
+      tab-size: 4;
+      white-space: pre;
+    }
+
+    .status-row {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+      color: var(--faint);
+      font-size: 13px;
+    }
+    .status-pills { display:flex; gap:8px; flex-wrap:wrap; }
+    .pill { display:inline-flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background: rgba(255,255,255,.055); color: rgba(248,251,255,.72); font-size: 13px; }
+    .pill.ok::before, .pill.warn::before, .pill.idle::before { content:""; width:8px; height:8px; border-radius:50%; background: var(--green); box-shadow: 0 0 12px var(--green); }
+    .pill.warn::before { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+    .pill.idle::before { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+
+    .progress-track { height: 10px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; border: 1px solid rgba(255,255,255,.10); margin-top: 12px; }
+    .progress-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink)); box-shadow: 0 0 22px rgba(110,231,255,.35); transition: width .25s ease; }
+
+    .console {
+      margin-top: 16px;
+      min-height: 360px;
+      max-height: 560px;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 22px;
+      background: rgba(0,0,0,.32);
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    .out-line { margin: 0 0 8px; color: rgba(248,251,255,.78); }
+    .out-line.stderr { color: var(--red); }
+    .out-line.result { color: var(--green); }
+    .out-line.system { color: var(--cyan); }
+    .out-line.warn { color: var(--gold); }
+    .figure { display:block; width:100%; max-width: 760px; margin: 12px 0; border-radius: 18px; border: 1px solid rgba(255,255,255,.14); background: white; }
+
+    .side-stack { display:grid; gap:20px; }
+    .field { display:grid; gap:8px; margin-top: 16px; }
+    label { color: rgba(248,251,255,.78); font-size: 13px; font-weight: 720; }
+    .hint { color: var(--faint); font-size: 12px; line-height: 1.5; }
+    .package-row { display:grid; grid-template-columns: minmax(0, 1fr) auto; gap:10px; }
+    .file-input { display:none; }
+
+    .info-grid { display: grid; gap: 12px; margin-top: 18px; }
+    .info-item { display:flex; gap:12px; align-items:flex-start; padding: 14px; border:1px solid rgba(255,255,255,.12); border-radius: 20px; background: rgba(255,255,255,.055); }
+    .info-icon { flex:0 0 auto; width: 32px; height: 32px; display:grid; place-items:center; border-radius: 12px; background: linear-gradient(135deg, rgba(110,231,255,.22), rgba(255,110,199,.12)); color: var(--cyan); }
+    .info-item strong { display:block; margin-bottom:3px; }
+    .info-item span { color: var(--muted); line-height:1.55; font-size: 13px; }
+
+    footer { padding: 28px 0 54px; color: rgba(248,251,255,.55); }
+    .footer-inner { display:flex; align-items:center; justify-content:space-between; gap:20px; border-top:1px solid rgba(255,255,255,.11); padding-top: 22px; }
+    .footer-links { display:flex; gap:14px; flex-wrap:wrap; }
+    .footer-links a { color: rgba(248,251,255,.72); }
+    .footer-links a:hover { color: var(--cyan); }
+
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    @keyframes auroraSpin { 0% { transform: rotate(-6deg) scale(1.02); } 100% { transform: rotate(9deg) scale(1.08); } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(117,247,177,.66); } 70% { box-shadow: 0 0 0 12px rgba(117,247,177,0); } 100% { box-shadow: 0 0 0 0 rgba(117,247,177,0); } }
+    @keyframes textShine { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+    @media (max-width: 1060px) {
+      .lab-grid { grid-template-columns: 1fr; }
+      .nav-links { display:none; }
+    }
+    @media (max-width: 680px) {
+      .wrap { width: min(100% - 28px, 1240px); }
+      .site-header { top: 10px; margin-top: 10px; }
+      .nav { border-radius: 24px; }
+      .brand span:last-child { display:none; }
+      h1 { font-size: clamp(42px, 15vw, 72px); }
+      .panel-inner { padding: 18px; }
+      .toolbar { align-items: stretch; }
+      .toolbar-left, .toolbar-right { width:100%; }
+      .btn, .select, .input { width: 100%; }
+      .package-row { grid-template-columns: 1fr; }
+      .editor-shell { grid-template-columns: 42px minmax(0, 1fr); }
+      #editor, .line-numbers { font-size: 13px; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+
+  <header class="site-header wrap">
+    <nav class="nav" aria-label="主要導覽">
+      <a class="brand" href="/" aria-label="回到首頁">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>r0b5k3f0</span>
+      </a>
+      <div class="nav-links" aria-label="頁面區段">
+        <a href="/">首頁</a>
+        <a href="#lab">Python Lab</a>
+        <a href="/tools/jupyter/lab/">JupyterLite</a>
+        <a href="/tools/video-converter/">影片轉檔</a>
+      </div>
+      <a class="btn" href="/">返回首頁</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div class="reveal">
+        <div class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span> Static Python Runtime · Powered by Pyodide</div>
+        <h1><span class="gradient-text">Python Lab</span><br />in your browser.</h1>
+        <p class="hero-subtitle">
+          在 GitHub Pages 上執行的純靜態 Python 開發環境。程式碼會在你的瀏覽器內透過 Pyodide / WebAssembly 執行，
+          不需要後端伺服器，也不會把你的程式或資料上傳到本站。
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#lab">開始寫 Python</a>
+          <a class="btn" href="/tools/jupyter/lab/">開啟 JupyterLite</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="lab" class="lab-grid wrap">
+      <div class="panel reveal">
+        <div class="panel-inner">
+          <h2>Code Editor</h2>
+          <p>支援瀏覽器本機執行、檔案匯入/下載、常用套件載入與 Matplotlib 圖片輸出。</p>
+
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <select id="exampleSelect" class="select" aria-label="選擇範例程式">
+                <option value="hello">Hello Python</option>
+                <option value="numpy">NumPy quick tour</option>
+                <option value="plot">Matplotlib chart</option>
+                <option value="files">Read uploaded file</option>
+                <option value="async">Async / await demo</option>
+              </select>
+              <button id="insertExampleBtn" class="btn" type="button">載入範例</button>
+            </div>
+            <div class="toolbar-right">
+              <button id="runBtn" class="btn primary" type="button">▶ Run</button>
+              <button id="clearOutputBtn" class="btn" type="button">清除輸出</button>
+              <button id="downloadBtn" class="btn" type="button">下載 .py</button>
+            </div>
+          </div>
+
+          <div class="editor-shell">
+            <pre id="lineNumbers" class="line-numbers" aria-hidden="true">1</pre>
+            <textarea id="editor" spellcheck="false" aria-label="Python code editor"></textarea>
+          </div>
+
+          <div class="status-row">
+            <div class="status-pills">
+              <span id="runtimePill" class="pill idle">Pyodide 尚未載入</span>
+              <span id="filePill" class="pill idle">0 個檔案在虛擬 FS</span>
+            </div>
+            <div id="codeStats">0 lines · 0 chars</div>
+          </div>
+          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        </div>
+      </div>
+
+      <aside class="side-stack">
+        <div class="panel reveal">
+          <div class="panel-inner">
+            <h2>Console</h2>
+            <p id="statusText">等待執行。第一次 Run 會下載 Pyodide Python runtime，請稍候。</p>
+            <div id="console" class="console" aria-live="polite"><div class="out-line system">Ready. 選擇範例或直接輸入 Python 程式，按 Run 執行。</div></div>
+          </div>
+        </div>
+
+        <div class="panel reveal">
+          <div class="panel-inner">
+            <h2>Packages & Files</h2>
+            <p>常用 Pyodide 套件可以在瀏覽器內下載；純 Python wheel 可嘗試用 micropip 安裝。</p>
+
+            <div class="field">
+              <label for="packageInput">載入套件</label>
+              <div class="package-row">
+                <input id="packageInput" class="input" type="text" value="numpy, pandas, matplotlib" />
+                <button id="loadPackagesBtn" class="btn green" type="button">Load</button>
+              </div>
+              <div class="hint">例如：<code>numpy, pandas, matplotlib</code>。大型套件第一次載入需要一些時間。</div>
+            </div>
+
+            <div class="field">
+              <label>上傳資料檔到 Pyodide FS</label>
+              <input id="fileInput" class="file-input" type="file" multiple />
+              <button id="uploadBtn" class="btn" type="button">選擇檔案</button>
+              <div class="hint">上傳後可直接用 <code>open('filename')</code> 或 <code>pandas.read_csv('filename')</code> 讀取。</div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item"><div class="info-icon">🔒</div><div><strong>本機執行</strong><span>程式和資料留在瀏覽器中，本站沒有後端可接收檔案。</span></div></div>
+              <div class="info-item"><div class="info-icon">🧠</div><div><strong>適合用途</strong><span>教學、演算法練習、小型資料分析與快速視覺化。</span></div></div>
+              <div class="info-item"><div class="info-icon">⚠️</div><div><strong>限制</strong><span>無法提供真正 Linux shell、Docker、GPU 或任意 native 套件。</span></div></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <div class="footer-inner">
+      <div>© <span id="year"></span> r0b5k3f0 · Python Lab on GitHub Pages</div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/tools/jupyter/lab/">JupyterLite</a>
+        <a href="https://pyodide.org/" target="_blank" rel="noreferrer">Pyodide</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    'use strict';
+
+    const $ = (selector) => document.querySelector(selector);
+    const PYODIDE_SOURCES = [
+      { name: 'jsDelivr', script: 'https://cdn.jsdelivr.net/pyodide/v0.28.0/full/pyodide.js', indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.28.0/full/' },
+      { name: 'unpkg', script: 'https://unpkg.com/pyodide@0.28.0/pyodide.js', indexURL: 'https://unpkg.com/pyodide@0.28.0/' }
+    ];
+
+    const examples = {
+      hello: `# Hello from r0b5k3f0 Python Lab\nimport sys\nfrom datetime import datetime\n\nprint('Hello, Python in the browser!')\nprint('Python version:', sys.version.split()[0])\nprint('Current time:', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))\n\nvalues = [1, 1, 2, 3, 5, 8, 13]\nprint('values =', values)\nprint('sum =', sum(values))`,
+      numpy: `# 如果尚未載入 numpy，請先按右側 Load packages，或直接執行本範例後等待載入。\nimport micropip\nimport numpy as np\n\narr = np.arange(1, 13).reshape(3, 4)\nprint('array:')\nprint(arr)\nprint('column sums:', arr.sum(axis=0))\nprint('mean:', arr.mean())`,
+      plot: `# Matplotlib chart demo\n# 如果尚未載入 matplotlib，請先按右側 Load packages。\nimport numpy as np\nimport matplotlib.pyplot as plt\n\nx = np.linspace(0, 2 * np.pi, 240)\ny1 = np.sin(x)\ny2 = np.cos(x)\n\nplt.figure(figsize=(7, 3.4))\nplt.plot(x, y1, label='sin(x)', color='#6ee7ff')\nplt.plot(x, y2, label='cos(x)', color='#ff6ec7')\nplt.title('Pyodide + Matplotlib')\nplt.grid(alpha=.25)\nplt.legend()\nplt.show()`,
+      files: `# 先在右側「選擇檔案」上傳文字檔或 CSV。\n# 例如上傳 data.csv 後，可以：\n\nimport os\nprint('Files in virtual filesystem:')\nprint(os.listdir())\n\n# with open('data.csv', 'r', encoding='utf-8') as f:\n#     print(f.read()[:500])`,
+      async: `# Pyodide 支援 top-level await\nimport asyncio\n\nasync def work(name, delay):\n    await asyncio.sleep(delay)\n    print(f'done: {name}')\n    return name\n\nresults = await asyncio.gather(\n    work('alpha', 0.2),\n    work('beta', 0.1),\n    work('gamma', 0.3),\n)\nprint('results =', results)`
+    };
+
+    const state = {
+      pyodide: null,
+      loading: false,
+      running: false,
+      files: new Set(),
+      lastDownloadUrl: null
+    };
+
+    const els = {
+      editor: $('#editor'),
+      lineNumbers: $('#lineNumbers'),
+      exampleSelect: $('#exampleSelect'),
+      insertExampleBtn: $('#insertExampleBtn'),
+      runBtn: $('#runBtn'),
+      clearOutputBtn: $('#clearOutputBtn'),
+      downloadBtn: $('#downloadBtn'),
+      runtimePill: $('#runtimePill'),
+      filePill: $('#filePill'),
+      codeStats: $('#codeStats'),
+      progressBar: $('#progressBar'),
+      statusText: $('#statusText'),
+      console: $('#console'),
+      packageInput: $('#packageInput'),
+      loadPackagesBtn: $('#loadPackagesBtn'),
+      uploadBtn: $('#uploadBtn'),
+      fileInput: $('#fileInput')
+    };
+
+    $('#year').textContent = new Date().getFullYear();
+
+    function setProgress(percent) {
+      els.progressBar.style.width = Math.max(0, Math.min(100, percent)) + '%';
+    }
+
+    function setStatus(text) {
+      els.statusText.textContent = text;
+    }
+
+    function setRuntimePill(text, kind = 'idle') {
+      els.runtimePill.className = 'pill ' + kind;
+      els.runtimePill.textContent = text;
+    }
+
+    function updateFilePill() {
+      els.filePill.textContent = state.files.size + ' 個檔案在虛擬 FS';
+      els.filePill.className = 'pill ' + (state.files.size ? 'ok' : 'idle');
+    }
+
+    function appendOutput(text, kind = 'stdout') {
+      const line = document.createElement('div');
+      line.className = 'out-line ' + kind;
+      line.textContent = String(text);
+      els.console.appendChild(line);
+      els.console.scrollTop = els.console.scrollHeight;
+    }
+
+    function clearOutput() {
+      els.console.innerHTML = '';
+    }
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const existing = [...document.scripts].find((script) => script.src === src);
+        if (existing) return resolve();
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('無法載入 ' + src));
+        document.head.appendChild(script);
+      });
+    }
+
+    async function ensurePyodide() {
+      if (state.pyodide) return state.pyodide;
+      if (state.loading) {
+        while (state.loading) await new Promise((resolve) => setTimeout(resolve, 150));
+        return state.pyodide;
+      }
+      state.loading = true;
+      els.runBtn.disabled = true;
+      els.loadPackagesBtn.disabled = true;
+      setProgress(5);
+      setRuntimePill('正在載入 Pyodide…', 'warn');
+      setStatus('正在下載 Pyodide Python runtime，第一次可能需要一點時間…');
+
+      let lastError = null;
+      for (const source of PYODIDE_SOURCES) {
+        try {
+          appendOutput('Loading Pyodide from ' + source.name + '…', 'system');
+          await loadScript(source.script);
+          if (typeof loadPyodide !== 'function') throw new Error('loadPyodide is not available');
+          setProgress(18);
+          const pyodide = await loadPyodide({ indexURL: source.indexURL });
+          setProgress(72);
+          pyodide.setStdout({ batched: (text) => appendOutput(text, 'stdout') });
+          pyodide.setStderr({ batched: (text) => appendOutput(text, 'stderr') });
+          await pyodide.loadPackage('micropip');
+          state.pyodide = pyodide;
+          setProgress(100);
+          setRuntimePill('Pyodide 已就緒', 'ok');
+          setStatus('Python runtime 已載入。');
+          appendOutput('Pyodide ready. Python code will run locally in this browser.', 'system');
+          state.loading = false;
+          els.runBtn.disabled = false;
+          els.loadPackagesBtn.disabled = false;
+          return pyodide;
+        } catch (error) {
+          lastError = error;
+          appendOutput('Pyodide source failed (' + source.name + '): ' + error.message, 'warn');
+        }
+      }
+      state.loading = false;
+      els.runBtn.disabled = false;
+      els.loadPackagesBtn.disabled = false;
+      setRuntimePill('Pyodide 載入失敗', 'warn');
+      setProgress(0);
+      throw lastError || new Error('無法載入 Pyodide。');
+    }
+
+    function setRunning(running) {
+      state.running = running;
+      els.runBtn.disabled = running;
+      els.insertExampleBtn.disabled = running;
+      els.loadPackagesBtn.disabled = running;
+      els.uploadBtn.disabled = running;
+      els.runBtn.textContent = running ? 'Running…' : '▶ Run';
+    }
+
+    async function renderMatplotlibFigures() {
+      if (!state.pyodide) return;
+      const script = `
+import sys, json, base64, io
+images = []
+if 'matplotlib.pyplot' in sys.modules:
+    import matplotlib.pyplot as plt
+    for num in plt.get_fignums():
+        fig = plt.figure(num)
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', bbox_inches='tight', dpi=144)
+        images.append(base64.b64encode(buf.getvalue()).decode('ascii'))
+json.dumps(images)
+`;
+      try {
+        const raw = await state.pyodide.runPythonAsync(script);
+        const images = JSON.parse(raw || '[]');
+        for (const image of images) {
+          const img = document.createElement('img');
+          img.className = 'figure';
+          img.alt = 'Matplotlib output';
+          img.src = 'data:image/png;base64,' + image;
+          els.console.appendChild(img);
+        }
+        if (images.length) els.console.scrollTop = els.console.scrollHeight;
+      } catch (error) {
+        appendOutput('Figure rendering failed: ' + error.message, 'warn');
+      }
+    }
+
+    async function runCode() {
+      if (state.running) return;
+      setRunning(true);
+      setProgress(3);
+      setStatus('準備執行 Python…');
+      try {
+        const pyodide = await ensurePyodide();
+        setProgress(12);
+        setStatus('執行中…');
+        const code = els.editor.value;
+        localStorage.setItem('r0b5k3f0.pythonLab.code', code);
+        const started = performance.now();
+        const result = await pyodide.runPythonAsync(code);
+        setProgress(84);
+        if (result !== undefined && result !== null && String(result) !== 'None') {
+          appendOutput(String(result), 'result');
+          if (result && typeof result.destroy === 'function') result.destroy();
+        }
+        await renderMatplotlibFigures();
+        const elapsed = ((performance.now() - started) / 1000).toFixed(2);
+        setProgress(100);
+        setStatus('執行完成，用時 ' + elapsed + ' 秒。');
+        appendOutput('✓ Finished in ' + elapsed + 's', 'system');
+      } catch (error) {
+        setProgress(0);
+        setStatus('執行失敗。');
+        appendOutput(error && error.stack ? error.stack : String(error), 'stderr');
+      } finally {
+        setRunning(false);
+      }
+    }
+
+    async function loadPackages() {
+      try {
+        const pyodide = await ensurePyodide();
+        const packages = els.packageInput.value.split(',').map((item) => item.trim()).filter(Boolean);
+        if (!packages.length) return;
+        setRunning(true);
+        setProgress(10);
+        setStatus('載入套件：' + packages.join(', '));
+        appendOutput('Loading packages: ' + packages.join(', '), 'system');
+        try {
+          await pyodide.loadPackage(packages);
+        } catch (error) {
+          appendOutput('pyodide.loadPackage failed, trying micropip.install…', 'warn');
+          pyodide.globals.set('__packages_to_install__', packages);
+          await pyodide.runPythonAsync(`import micropip\nawait micropip.install(__packages_to_install__)`);
+          pyodide.globals.delete('__packages_to_install__');
+        }
+        setProgress(100);
+        setStatus('套件載入完成。');
+        appendOutput('Packages ready: ' + packages.join(', '), 'system');
+      } catch (error) {
+        setProgress(0);
+        setStatus('套件載入失敗。');
+        appendOutput(error && error.stack ? error.stack : String(error), 'stderr');
+      } finally {
+        setRunning(false);
+      }
+    }
+
+    async function uploadFiles(files) {
+      if (!files || !files.length) return;
+      try {
+        const pyodide = await ensurePyodide();
+        for (const file of files) {
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          pyodide.FS.writeFile(file.name, bytes);
+          state.files.add(file.name);
+          appendOutput('Uploaded to virtual FS: ' + file.name + ' (' + bytes.length + ' bytes)', 'system');
+        }
+        updateFilePill();
+        setStatus('檔案已上傳到 Pyodide 虛擬檔案系統。');
+      } catch (error) {
+        appendOutput(error && error.stack ? error.stack : String(error), 'stderr');
+      }
+    }
+
+    function downloadCode() {
+      if (state.lastDownloadUrl) URL.revokeObjectURL(state.lastDownloadUrl);
+      const blob = new Blob([els.editor.value], { type: 'text/x-python;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      state.lastDownloadUrl = url;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'python-lab-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.py';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function syncLineNumbers() {
+      const lines = els.editor.value.split('\n').length;
+      els.lineNumbers.textContent = Array.from({ length: lines }, (_, i) => i + 1).join('\n');
+      els.codeStats.textContent = lines + ' lines · ' + els.editor.value.length + ' chars';
+      localStorage.setItem('r0b5k3f0.pythonLab.code', els.editor.value);
+    }
+
+    function insertExample() {
+      const key = els.exampleSelect.value;
+      els.editor.value = examples[key] || examples.hello;
+      syncLineNumbers();
+      els.editor.focus();
+    }
+
+    // Editor behavior
+    els.editor.addEventListener('input', syncLineNumbers);
+    els.editor.addEventListener('scroll', () => { els.lineNumbers.scrollTop = els.editor.scrollTop; });
+    els.editor.addEventListener('keydown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        runCode();
+        return;
+      }
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const start = els.editor.selectionStart;
+        const end = els.editor.selectionEnd;
+        els.editor.value = els.editor.value.slice(0, start) + '    ' + els.editor.value.slice(end);
+        els.editor.selectionStart = els.editor.selectionEnd = start + 4;
+        syncLineNumbers();
+      }
+    });
+
+    els.insertExampleBtn.addEventListener('click', insertExample);
+    els.runBtn.addEventListener('click', runCode);
+    els.clearOutputBtn.addEventListener('click', () => {
+      clearOutput();
+      appendOutput('Console cleared.', 'system');
+    });
+    els.downloadBtn.addEventListener('click', downloadCode);
+    els.loadPackagesBtn.addEventListener('click', loadPackages);
+    els.uploadBtn.addEventListener('click', () => els.fileInput.click());
+    els.fileInput.addEventListener('change', () => uploadFiles(els.fileInput.files));
+
+    // Cosmetic interactions
+    const cursor = document.querySelector('.cursor-glow');
+    window.addEventListener('pointermove', (event) => {
+      cursor.style.opacity = '.82';
+      cursor.style.left = event.clientX + 'px';
+      cursor.style.top = event.clientY + 'px';
+    }, { passive: true });
+    window.addEventListener('pointerleave', () => { cursor.style.opacity = '0'; });
+
+    document.querySelectorAll('.panel').forEach((panel) => {
+      panel.addEventListener('pointermove', (event) => {
+        const rect = panel.getBoundingClientRect();
+        panel.style.setProperty('--mx', ((event.clientX - rect.left) / rect.width * 100).toFixed(2) + '%');
+        panel.style.setProperty('--my', ((event.clientY - rect.top) / rect.height * 100).toFixed(2) + '%');
+      }, { passive: true });
+    });
+
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach((el, index) => {
+      el.style.transitionDelay = Math.min(index * 45, 280) + 'ms';
+      observer.observe(el);
+    });
+
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let stars = [];
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    function resizeStars() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.min(160, Math.floor((width * height) / 9000));
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z: Math.random() * 0.8 + 0.2,
+        r: Math.random() * 1.35 + 0.35,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
+        hue: [190, 230, 275, 320][Math.floor(Math.random() * 4)]
+      }));
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, width, height);
+      for (const star of stars) {
+        if (!prefersReducedMotion) {
+          star.x += star.vx * star.z;
+          star.y += star.vy * star.z;
+          if (star.x < -10) star.x = width + 10;
+          if (star.x > width + 10) star.x = -10;
+          if (star.y < -10) star.y = height + 10;
+          if (star.y > height + 10) star.y = -10;
+        }
+        const alpha = 0.22 + star.z * 0.55;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r * star.z, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${star.hue}, 100%, 78%, ${alpha})`;
+        ctx.shadowBlur = 12 * star.z;
+        ctx.shadowColor = `hsla(${star.hue}, 100%, 70%, .75)`;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      if (!prefersReducedMotion) requestAnimationFrame(drawStars);
+    }
+
+    const saved = localStorage.getItem('r0b5k3f0.pythonLab.code');
+    els.editor.value = saved || examples.hello;
+    syncLineNumbers();
+    updateFilePill();
+    window.addEventListener('resize', resizeStars, { passive: true });
+    resizeStars();
+    drawStars();
+
+    if (!window.isSecureContext) {
+      appendOutput('Warning: 建議透過 HTTPS 使用 Pyodide。', 'warn');
+    }
+  </script>
+</body>
+</html>
