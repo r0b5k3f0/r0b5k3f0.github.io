@@ -20,3 +20,7 @@ SVG favicon set:
 - `/favicons/favicon-terminal.svg`
 - `/favicons/favicon-mask.svg`
 - `/favicons/preview.html` — icon preview gallery
+
+## Tools
+
+- `/tools/video-converter/` — browser-only FFmpeg WebAssembly video converter. It runs entirely as a static GitHub Pages app and uses ffmpeg.wasm in the user's browser.
