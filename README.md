@@ -24,3 +24,8 @@ SVG favicon set:
 ## Tools
 
 - `/tools/video-converter/` — browser-only FFmpeg WebAssembly video converter. It runs entirely as a static GitHub Pages app and uses ffmpeg.wasm in the user's browser.
+
+
+### FFmpeg assets
+
+The converter vendors the single-thread ffmpeg.wasm runtime under `/tools/video-converter/vendor/ffmpeg/` so the tool does not depend on third-party CDN scripts for normal operation. External CDNs remain as fallback sources only.
