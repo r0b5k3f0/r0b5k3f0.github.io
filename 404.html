@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090A1A" />
+  <title>404 · r0b5k3f0</title>
+  <style>
+    :root { color-scheme: dark; --cyan:#6ee7ff; --pink:#ff6ec7; --violet:#ba7cff; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(110,231,255,.24), transparent 32%),
+        radial-gradient(circle at 80% 70%, rgba(255,110,199,.22), transparent 34%),
+        linear-gradient(135deg, #050611, #0b0d24 55%, #16091e);
+      overflow: hidden;
+    }
+    body::before {
+      content:""; position: fixed; inset:0; pointer-events:none;
+      background-image: linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: radial-gradient(circle at center, #000 0 45%, transparent 78%);
+    }
+    .card {
+      position: relative;
+      width: min(720px, calc(100% - 32px));
+      padding: 46px;
+      border-radius: 34px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: linear-gradient(145deg, rgba(255,255,255,.14), rgba(255,255,255,.055));
+      box-shadow: 0 24px 90px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22);
+      backdrop-filter: blur(24px) saturate(1.35);
+      text-align: center;
+    }
+    .code {
+      font-size: clamp(82px, 22vw, 168px);
+      line-height: .8;
+      margin: 0 0 24px;
+      letter-spacing: -.08em;
+      color: transparent;
+      background: linear-gradient(90deg, white, var(--cyan), var(--violet), var(--pink), white);
+      background-size: 220% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      animation: shine 6s ease-in-out infinite;
+    }
+    h1 { margin: 0 0 14px; font-size: clamp(26px, 5vw, 44px); letter-spacing: -.04em; }
+    p { margin: 0 auto 28px; max-width: 520px; color: rgba(255,255,255,.7); line-height: 1.75; }
+    a {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 48px; padding: 0 20px; border-radius: 999px;
+      color: white; text-decoration: none; border: 1px solid rgba(255,255,255,.2);
+      background: linear-gradient(90deg, rgba(110,231,255,.25), rgba(186,124,255,.24), rgba(255,110,199,.22));
+      box-shadow: 0 14px 42px rgba(0,0,0,.28);
+    }
+    a:hover { transform: translateY(-2px); }
+    @keyframes shine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="code">404</div>
+    <h1>這裡還沒有座標。</h1>
+    <p>你抵達了一片尚未開拓的星域。回到首頁，繼續探索 r0b5k3f0 的 Digital Garden。</p>
+    <a href="/">回到首頁</a>
+  </main>
+</body>
+</html>
