@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="r0b5k3f0 的 GitHub Pages 華麗入口網站：程式、實驗、作品與數位花園。" />
+  <meta name="theme-color" content="#090A1A" />
+  <title>r0b5k3f0 · Digital Garden</title>
+  <style>
+    :root {
+      --bg: #070812;
+      --bg-2: #0d1026;
+      --text: #f8fbff;
+      --muted: rgba(248, 251, 255, .68);
+      --soft: rgba(248, 251, 255, .11);
+      --line: rgba(255, 255, 255, .16);
+      --cyan: #6ee7ff;
+      --blue: #7796ff;
+      --violet: #ba7cff;
+      --pink: #ff6ec7;
+      --gold: #ffd166;
+      --green: #75f7b1;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .48);
+      --radius: 28px;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(110, 231, 255, .25), transparent 30%),
+        radial-gradient(circle at 78% 8%, rgba(255, 110, 199, .22), transparent 28%),
+        radial-gradient(circle at 50% 70%, rgba(186, 124, 255, .23), transparent 35%),
+        linear-gradient(135deg, #050611 0%, #0b0d24 48%, #120719 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -4;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 58px 58px;
+      mask-image: radial-gradient(circle at 50% 20%, #000 0 52%, transparent 86%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      background:
+        linear-gradient(transparent 0 48%, rgba(255,255,255,.025) 49% 51%, transparent 52% 100%);
+      background-size: 100% 6px;
+      mix-blend-mode: screen;
+      opacity: .35;
+    }
+
+    ::selection { background: rgba(110, 231, 255, .35); }
+
+    a { color: inherit; text-decoration: none; }
+    img, svg { display: block; }
+
+    #stars {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -3;
+      pointer-events: none;
+    }
+
+    .aurora {
+      position: fixed;
+      inset: -20vh -20vw;
+      z-index: -5;
+      background:
+        conic-gradient(from 120deg at 30% 40%, rgba(110,231,255,.12), transparent 23%, rgba(255,110,199,.14), transparent 56%, rgba(117,247,177,.11), rgba(110,231,255,.12)),
+        conic-gradient(from 260deg at 70% 58%, rgba(186,124,255,.18), transparent 25%, rgba(255,209,102,.12), transparent 62%, rgba(110,231,255,.14));
+      filter: blur(58px) saturate(1.25);
+      animation: auroraSpin 26s linear infinite alternate;
+      opacity: .95;
+    }
+
+    .glow-cursor {
+      position: fixed;
+      width: 380px;
+      height: 380px;
+      left: 0;
+      top: 0;
+      z-index: -2;
+      border-radius: 999px;
+      pointer-events: none;
+      translate: -50% -50%;
+      background: radial-gradient(circle, rgba(110,231,255,.20), rgba(186,124,255,.08) 42%, transparent 72%);
+      filter: blur(10px);
+      opacity: .8;
+      transition: opacity .3s ease;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 49;
+      opacity: .055;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.72'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+
+    .wrap {
+      width: min(1160px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 16px;
+      z-index: 30;
+      margin-top: 16px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 999px;
+      background: rgba(7, 8, 18, .54);
+      backdrop-filter: blur(22px) saturate(1.35);
+      box-shadow: 0 16px 50px rgba(0,0,0,.24);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 850;
+      letter-spacing: .02em;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 13px;
+      background:
+        linear-gradient(135deg, rgba(110,231,255,.95), rgba(186,124,255,.95) 52%, rgba(255,110,199,.95));
+      box-shadow: 0 0 30px rgba(110,231,255,.32), inset 0 0 18px rgba(255,255,255,.28);
+      overflow: hidden;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      border-radius: inherit;
+      inset: 8px;
+      border: 1px solid rgba(255,255,255,.72);
+      transform: rotate(45deg);
+    }
+
+    .brand-mark::after {
+      inset: 14px;
+      background: rgba(5,6,17,.7);
+      border: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(248,251,255,.78);
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      padding: 10px 13px;
+      border-radius: 999px;
+      transition: background .2s ease, color .2s ease, transform .2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,.1);
+      transform: translateY(-1px);
+    }
+
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 12px 34px rgba(0,0,0,.22);
+      overflow: hidden;
+      isolation: isolate;
+      transition: transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .btn::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      z-index: -1;
+      opacity: 0;
+      background: linear-gradient(90deg, rgba(110,231,255,.8), rgba(186,124,255,.82), rgba(255,110,199,.8));
+      transition: opacity .22s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.32);
+      box-shadow: 0 18px 48px rgba(0,0,0,.32), 0 0 28px rgba(110,231,255,.16);
+    }
+
+    .btn:hover::before { opacity: .95; }
+    .btn.primary { background: linear-gradient(90deg, rgba(110,231,255,.24), rgba(186,124,255,.23), rgba(255,110,199,.22)); }
+    .btn.ghost { background: rgba(255,255,255,.05); }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(330px, .95fr);
+      gap: 44px;
+      align-items: center;
+      padding: 104px 0 64px;
+      min-height: calc(100vh - 80px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 13px;
+      border: 1px solid rgba(110,231,255,.30);
+      border-radius: 999px;
+      color: rgba(248,251,255,.82);
+      background: rgba(110,231,255,.08);
+      box-shadow: inset 0 0 22px rgba(110,231,255,.05);
+      font-size: 14px;
+      margin-bottom: 22px;
+    }
+
+    .pulse-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(117,247,177,.66);
+      animation: pulse 1.8s infinite;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 850px;
+      font-size: clamp(52px, 8.4vw, 116px);
+      line-height: .88;
+      letter-spacing: -.075em;
+    }
+
+    .gradient-text {
+      color: transparent;
+      background: linear-gradient(100deg, #fff 0%, var(--cyan) 26%, var(--violet) 56%, var(--pink) 82%, #fff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      background-size: 220% 100%;
+      animation: textShine 7s ease-in-out infinite;
+      filter: drop-shadow(0 12px 40px rgba(110,231,255,.12));
+    }
+
+    .hero-subtitle {
+      max-width: 690px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 22px);
+      line-height: 1.75;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 13px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      color: rgba(248,251,255,.76);
+      background: rgba(255,255,255,.055);
+      font-size: 14px;
+    }
+
+    .meta-pill svg { opacity: .9; color: var(--cyan); }
+
+    .orb-stage {
+      position: relative;
+      min-height: 560px;
+      perspective: 1000px;
+    }
+
+    .glass-panel {
+      position: absolute;
+      inset: 28px 0 auto auto;
+      width: min(100%, 480px);
+      min-height: 520px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 38px;
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.16), rgba(255,255,255,.05) 42%, rgba(255,255,255,.10)),
+        radial-gradient(circle at 20% 10%, rgba(110,231,255,.20), transparent 36%),
+        radial-gradient(circle at 90% 80%, rgba(255,110,199,.18), transparent 40%);
+      backdrop-filter: blur(28px) saturate(1.38);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.24);
+      overflow: hidden;
+      transform: rotateY(-8deg) rotateX(5deg);
+      animation: floatPanel 7s ease-in-out infinite;
+    }
+
+    .glass-panel::before {
+      content: "";
+      position: absolute;
+      inset: -80px;
+      background: conic-gradient(from 0deg, transparent, rgba(110,231,255,.26), transparent, rgba(255,110,199,.24), transparent);
+      animation: spin 12s linear infinite;
+      opacity: .75;
+    }
+
+    .glass-panel::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: 37px;
+      background: rgba(8, 10, 24, .72);
+    }
+
+    .panel-content {
+      position: relative;
+      z-index: 1;
+      padding: 28px;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .traffic { display: flex; gap: 8px; }
+    .traffic span { width: 12px; height: 12px; border-radius: 50%; display: block; }
+    .traffic span:nth-child(1) { background: #ff5f57; box-shadow: 0 0 14px rgba(255,95,87,.6); }
+    .traffic span:nth-child(2) { background: #ffbd2e; box-shadow: 0 0 14px rgba(255,189,46,.55); }
+    .traffic span:nth-child(3) { background: #28c840; box-shadow: 0 0 14px rgba(40,200,64,.55); }
+
+    .terminal-title { color: rgba(248,251,255,.55); font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .code-card {
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 24px;
+      background: rgba(0,0,0,.24);
+      padding: 22px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      box-shadow: inset 0 0 32px rgba(110,231,255,.035);
+    }
+
+    .code-card p {
+      margin: 0 0 12px;
+      color: rgba(248,251,255,.73);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .code-card .cyan { color: var(--cyan); }
+    .code-card .pink { color: var(--pink); }
+    .code-card .gold { color: var(--gold); }
+    .code-card .green { color: var(--green); }
+
+    .holo-orb {
+      position: relative;
+      width: 245px;
+      height: 245px;
+      margin: 34px auto 8px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255,255,255,.88), transparent 0 8%, rgba(110,231,255,.70) 9% 15%, transparent 16%),
+        radial-gradient(circle at 42% 35%, rgba(110,231,255,.96), rgba(186,124,255,.70) 32%, rgba(255,110,199,.38) 58%, rgba(5,6,17,.05) 72%),
+        conic-gradient(from 0deg, rgba(110,231,255,.75), rgba(186,124,255,.75), rgba(255,110,199,.7), rgba(117,247,177,.55), rgba(110,231,255,.75));
+      box-shadow:
+        inset -24px -28px 62px rgba(0,0,0,.34),
+        inset 18px 18px 50px rgba(255,255,255,.12),
+        0 0 45px rgba(110,231,255,.23),
+        0 0 110px rgba(186,124,255,.20);
+      animation: orbFloat 5.5s ease-in-out infinite;
+      overflow: hidden;
+    }
+
+    .holo-orb::before,
+    .holo-orb::after {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.36);
+      transform: rotateX(64deg) rotateZ(0deg);
+      animation: ringSpin 4.5s linear infinite;
+    }
+
+    .holo-orb::after {
+      inset: 21%;
+      transform: rotateX(72deg) rotateZ(90deg);
+      animation-duration: 6.5s;
+      border-color: rgba(110,231,255,.45);
+    }
+
+    .orbit {
+      position: absolute;
+      inset: 72px 35px auto;
+      height: 360px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      transform: rotate(-18deg);
+      pointer-events: none;
+    }
+
+    .orbit::before, .orbit::after {
+      content: "";
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 22px var(--cyan);
+      left: 42%;
+      top: -7px;
+    }
+    .orbit::after { background: var(--pink); box-shadow: 0 0 22px var(--pink); left: auto; right: 18%; top: auto; bottom: 1px; }
+
+    .section {
+      position: relative;
+      padding: 92px 0;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, .8fr) minmax(260px, .55fr);
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 34px;
+    }
+
+    .kicker {
+      margin: 0 0 12px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: .17em;
+      font-weight: 760;
+      font-size: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1;
+      letter-spacing: -.05em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .bento {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr .9fr;
+      grid-auto-rows: minmax(210px, auto);
+      gap: 18px;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.045)),
+        radial-gradient(circle at 12% 10%, rgba(110,231,255,.15), transparent 35%);
+      box-shadow: 0 20px 60px rgba(0,0,0,.24);
+      overflow: hidden;
+      transition: transform .22s ease, border-color .22s ease, background .22s ease;
+      isolation: isolate;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      z-index: -1;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(110,231,255,.32), transparent 33%);
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,255,255,.25);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.15), rgba(255,255,255,.055)),
+        radial-gradient(circle at 12% 10%, rgba(110,231,255,.18), transparent 35%);
+    }
+    .card:hover::before { opacity: 1; }
+
+    .card-inner { padding: 28px; position: relative; z-index: 1; }
+    .card.big { grid-row: span 2; }
+    .card.wide { grid-column: span 2; }
+
+    .icon-badge {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      margin-bottom: 22px;
+      background: linear-gradient(135deg, rgba(110,231,255,.24), rgba(255,110,199,.16));
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: inset 0 0 24px rgba(255,255,255,.05), 0 0 24px rgba(110,231,255,.08);
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      letter-spacing: -.02em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.72;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .chip {
+      padding: 8px 11px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: rgba(255,255,255,.055);
+      color: rgba(248,251,255,.72);
+      font-size: 13px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 26px;
+    }
+
+    .metric {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.11);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 32px;
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+    .metric span { display: block; margin-top: 8px; color: rgba(248,251,255,.58); font-size: 13px; }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .project {
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .project-visual {
+      height: 164px;
+      margin: -6px -6px 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.13);
+      background:
+        radial-gradient(circle at 24% 28%, rgba(255,255,255,.54), transparent 0 8%, rgba(110,231,255,.42) 9% 18%, transparent 19%),
+        radial-gradient(circle at 78% 18%, rgba(255,110,199,.46), transparent 0 13%, rgba(186,124,255,.28) 14% 24%, transparent 25%),
+        linear-gradient(135deg, rgba(110,231,255,.20), rgba(186,124,255,.14), rgba(255,110,199,.16));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-visual::before {
+      content: "";
+      position: absolute;
+      inset: auto -20% 28px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.68), transparent);
+      box-shadow: 0 -28px rgba(255,255,255,.18), 0 -56px rgba(255,255,255,.10), 0 28px rgba(255,255,255,.08);
+      transform: rotate(-12deg);
+    }
+
+    .project-visual::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: 22px;
+      bottom: -42px;
+      border-radius: 36px;
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.06);
+      transform: rotate(18deg);
+      box-shadow: inset 0 0 30px rgba(255,255,255,.05);
+    }
+
+    .project:nth-child(2) .project-visual {
+      background:
+        linear-gradient(120deg, rgba(255,209,102,.22), rgba(255,110,199,.12), rgba(110,231,255,.14)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.09) 0 1px, transparent 1px 24px);
+    }
+    .project:nth-child(3) .project-visual {
+      background:
+        radial-gradient(circle at 50% 60%, rgba(117,247,177,.28), transparent 36%),
+        conic-gradient(from 180deg, rgba(110,231,255,.18), rgba(186,124,255,.22), rgba(255,110,199,.16), rgba(110,231,255,.18));
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 10px;
+      bottom: 10px;
+      width: 1px;
+      background: linear-gradient(var(--cyan), var(--violet), var(--pink));
+      opacity: .7;
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .timeline-dot {
+      position: relative;
+      z-index: 1;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(7,8,18,.85);
+      border: 1px solid rgba(255,255,255,.2);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 28px rgba(110,231,255,.15);
+    }
+
+    .timeline-dot::before {
+      content: "";
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 18px var(--cyan);
+    }
+
+    .timeline-box {
+      padding: 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(255,255,255,.06);
+    }
+    .timeline-box strong { display: block; margin-bottom: 7px; }
+    .timeline-box span { color: var(--muted); line-height: 1.7; }
+
+    .cta {
+      position: relative;
+      padding: 58px;
+      border-radius: 42px;
+      border: 1px solid rgba(255,255,255,.16);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(110,231,255,.22), transparent 38%),
+        radial-gradient(circle at 100% 100%, rgba(255,110,199,.20), transparent 40%),
+        linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,255,255,.045));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .cta::before {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      right: -110px;
+      top: -150px;
+      background: conic-gradient(rgba(110,231,255,.34), rgba(186,124,255,.18), rgba(255,110,199,.28), rgba(110,231,255,.34));
+      filter: blur(8px);
+      opacity: .68;
+      animation: spin 14s linear infinite;
+    }
+
+    .cta-content { position: relative; z-index: 1; max-width: 780px; }
+    .cta h2 { margin-bottom: 18px; }
+    .cta p { margin: 0; color: var(--muted); line-height: 1.75; font-size: 18px; }
+
+    footer {
+      padding: 42px 0 58px;
+      color: rgba(248,251,255,.55);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-top: 1px solid rgba(255,255,255,.11);
+      padding-top: 24px;
+    }
+
+    .footer-links { display: flex; gap: 14px; flex-wrap: wrap; }
+    .footer-links a { color: rgba(248,251,255,.72); }
+    .footer-links a:hover { color: var(--cyan); }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    @keyframes auroraSpin {
+      0% { transform: rotate(-6deg) scale(1.02); }
+      100% { transform: rotate(9deg) scale(1.08); }
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(117,247,177,.66); }
+      70% { box-shadow: 0 0 0 12px rgba(117,247,177,0); }
+      100% { box-shadow: 0 0 0 0 rgba(117,247,177,0); }
+    }
+    @keyframes textShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @keyframes floatPanel { 0%, 100% { transform: rotateY(-8deg) rotateX(5deg) translateY(0); } 50% { transform: rotateY(-3deg) rotateX(7deg) translateY(-18px); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes orbFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-18px) rotate(3deg); } }
+    @keyframes ringSpin { to { transform: rotateX(64deg) rotateZ(360deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; padding-top: 72px; }
+      .orb-stage { min-height: 500px; }
+      .glass-panel { position: relative; inset: auto; width: 100%; transform: none; }
+      .section-head { grid-template-columns: 1fr; }
+      .bento, .showcase-grid { grid-template-columns: 1fr 1fr; }
+      .card.big, .card.wide { grid-column: span 1; grid-row: span 1; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 680px) {
+      .wrap { width: min(100% - 28px, 1160px); }
+      .site-header { top: 10px; margin-top: 10px; }
+      .nav { border-radius: 24px; align-items: flex-start; }
+      .brand span:last-child { display: none; }
+      .nav-actions { margin-left: auto; }
+      .btn { min-height: 42px; padding: 0 14px; font-size: 14px; }
+      .hero { min-height: auto; padding: 64px 0 38px; }
+      h1 { font-size: clamp(46px, 17vw, 76px); }
+      .hero-subtitle { font-size: 16px; }
+      .orb-stage { min-height: auto; }
+      .glass-panel { min-height: auto; border-radius: 30px; }
+      .panel-content { padding: 20px; }
+      .holo-orb { width: 200px; height: 200px; }
+      .section { padding: 66px 0; }
+      .bento, .showcase-grid, .metrics { grid-template-columns: 1fr; }
+      .cta { padding: 34px 24px; border-radius: 30px; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="glow-cursor" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header wrap">
+    <nav class="nav" aria-label="主要導覽">
+      <a class="brand" href="#top" aria-label="回到首頁">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>r0b5k3f0</span>
+      </a>
+      <div class="nav-links" aria-label="頁面區段">
+        <a href="#about">關於</a>
+        <a href="#labs">實驗室</a>
+        <a href="#showcase">作品</a>
+        <a href="#contact">連結</a>
+      </div>
+      <div class="nav-actions">
+        <a class="btn ghost" href="https://github.com/r0b5k3f0" target="_blank" rel="noreferrer">GitHub ↗</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy reveal">
+        <div class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span> GitHub Pages 已啟動 · Welcome to the grid</div>
+        <h1><span class="gradient-text">Digital Garden</span><br />for curious builds.</h1>
+        <p class="hero-subtitle">
+          這是 r0b5k3f0 的華麗入口網站：把程式碼、靈感、實驗與作品收集在同一座會發光的數位花園裡。
+          以簡潔的靜態網頁承載快速、優雅、充滿未來感的體驗。
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#showcase">探索作品</a>
+          <a class="btn" href="#labs">進入實驗室</a>
+        </div>
+        <div class="meta-row" aria-label="網站特色">
+          <span class="meta-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-14h-7l0-6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            Fast static page
+          </span>
+          <span class="meta-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 12 20 7.5M12 12v9M12 12 4 7.5" stroke="currentColor" stroke-width="1.8"/></svg>
+            No external assets
+          </span>
+          <span class="meta-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12c3-7 11-7 14 0-3 7-11 7-14 0Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>
+            Responsive & animated
+          </span>
+        </div>
+      </div>
+
+      <div class="orb-stage reveal" aria-hidden="true">
+        <div class="orbit"></div>
+        <div class="glass-panel">
+          <div class="panel-content">
+            <div class="terminal-bar">
+              <div class="traffic"><span></span><span></span><span></span></div>
+              <div class="terminal-title">~/r0b5k3f0.github.io</div>
+            </div>
+            <div class="code-card">
+              <p><span class="pink">const</span> profile = {</p>
+              <p>&nbsp;&nbsp;alias: <span class="gold">"r0b5k3f0"</span>,</p>
+              <p>&nbsp;&nbsp;mode: <span class="gold">"build · learn · ship"</span>,</p>
+              <p>&nbsp;&nbsp;stack: [<span class="cyan">"web"</span>, <span class="cyan">"automation"</span>, <span class="cyan">"open-source"</span>],</p>
+              <p>&nbsp;&nbsp;status: <span class="green">"online"</span></p>
+              <p>};</p>
+            </div>
+            <div class="holo-orb"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section wrap">
+      <div class="section-head reveal">
+        <div>
+          <p class="kicker">About</p>
+          <h2>把想法打磨成會發光的介面。</h2>
+        </div>
+        <p>這個頁面以純 HTML、CSS 與少量 JavaScript 製作，沒有依賴外部 CDN 或圖片；即使在離線預覽環境也能完整呈現。</p>
+      </div>
+
+      <div class="bento">
+        <article class="card big reveal">
+          <div class="card-inner">
+            <div class="icon-badge" aria-hidden="true">✦</div>
+            <h3>Digital Craft</h3>
+            <p>專注於把抽象概念變成清楚、漂亮、可互動的網頁體驗。玻璃擬態、霓虹漸層、星空粒子與流動光影，讓靜態頁面也能有舞台感。</p>
+            <div class="metrics">
+              <div class="metric"><strong>01</strong><span>入口網站</span></div>
+              <div class="metric"><strong>∞</strong><span>可延伸區塊</span></div>
+              <div class="metric"><strong>0</strong><span>外部素材依賴</span></div>
+            </div>
+            <div class="chips">
+              <span class="chip">HTML5</span><span class="chip">CSS Motion</span><span class="chip">Canvas Stars</span><span class="chip">Accessible UI</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-inner">
+            <div class="icon-badge" aria-hidden="true">⌘</div>
+            <h3>精準</h3>
+            <p>用清楚的資訊層級、流暢的版面節奏與易讀字距，讓訪客第一眼就知道這裡是誰的空間。</p>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-inner">
+            <div class="icon-badge" aria-hidden="true">◈</div>
+            <h3>未來感</h3>
+            <p>以 aurora 背景、holographic orb 與互動 glow，打造科技感十足的第一印象。</p>
+          </div>
+        </article>
+
+        <article class="card wide reveal">
+          <div class="card-inner">
+            <div class="icon-badge" aria-hidden="true">⚡</div>
+            <h3>快速部署</h3>
+            <p>適合 GitHub Pages：單一檔案即可運作，後續可加入作品頁、文章、履歷、專案展示或自訂網域。</p>
+            <div class="chips">
+              <span class="chip">GitHub Pages</span><span class="chip">Responsive</span><span class="chip">SEO Meta</span><span class="chip">Reduced Motion</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="labs" class="section wrap">
+      <div class="section-head reveal">
+        <div>
+          <p class="kicker">Labs</p>
+          <h2>實驗、原型、持續進化。</h2>
+        </div>
+        <p>這裡可以逐步放上筆記、工具、demo、研究紀錄，讓 GitHub Pages 成為你的公開展示中心。</p>
+      </div>
+
+      <div class="timeline reveal">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-box"><strong>Initialize</strong><span>建立 r0b5k3f0.github.io，讓個人頁面正式上線。</span></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-box"><strong>Design System</strong><span>加入玻璃卡片、霓虹按鈕、響應式格線與可重用區塊。</span></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-box"><strong>Next Up</strong><span>後續可接上專案清單、部落格文章、GitHub API 或個人履歷。</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="showcase" class="section wrap">
+      <div class="section-head reveal">
+        <div>
+          <p class="kicker">Showcase</p>
+          <h2>可放置作品的閃耀舞台。</h2>
+        </div>
+        <p>以下是預留的作品卡片區塊；未來可替換成真實 repo、demo 或文章連結。</p>
+      </div>
+
+      <div class="showcase-grid">
+        <article class="card project reveal">
+          <div class="card-inner">
+            <div class="project-visual" aria-hidden="true"></div>
+            <h3>Web Experiments</h3>
+            <p>互動網頁、動態視覺、介面實驗與快速原型。</p>
+            <div class="chips"><span class="chip">UI</span><span class="chip">Motion</span><span class="chip">Prototype</span></div>
+          </div>
+        </article>
+        <article class="card project reveal">
+          <div class="card-inner">
+            <div class="project-visual" aria-hidden="true"></div>
+            <h3>Automation Tools</h3>
+            <p>把重複工作自動化，讓流程變得更輕、更快、更可靠。</p>
+            <div class="chips"><span class="chip">Scripts</span><span class="chip">CLI</span><span class="chip">Workflow</span></div>
+          </div>
+        </article>
+        <article class="card project reveal">
+          <div class="card-inner">
+            <div class="project-visual" aria-hidden="true"></div>
+            <h3>Open Source Notes</h3>
+            <p>紀錄學習、踩坑、解法與值得分享的技術片段。</p>
+            <div class="chips"><span class="chip">Notes</span><span class="chip">Docs</span><span class="chip">Ideas</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="contact" class="section wrap">
+      <div class="cta reveal">
+        <div class="cta-content">
+          <p class="kicker">Connect</p>
+          <h2>這座數位花園已準備好綻放。</h2>
+          <p>接下來可以把這裡擴充為完整個人網站：加入自我介紹、作品集、文章列表、下載履歷，或串接 GitHub 專案資料。</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="https://github.com/r0b5k3f0" target="_blank" rel="noreferrer">前往 GitHub</a>
+            <a class="btn" href="#top">回到頂端</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <div class="footer-inner">
+      <div>© <span id="year"></span> r0b5k3f0 · Built with GitHub Pages</div>
+      <div class="footer-links">
+        <a href="#about">About</a>
+        <a href="#labs">Labs</a>
+        <a href="#showcase">Showcase</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const year = document.getElementById('year');
+    year.textContent = new Date().getFullYear();
+
+    const cursor = document.querySelector('.glow-cursor');
+    let cursorVisible = false;
+    window.addEventListener('pointermove', (event) => {
+      cursorVisible = true;
+      cursor.style.opacity = '.85';
+      cursor.style.left = event.clientX + 'px';
+      cursor.style.top = event.clientY + 'px';
+    }, { passive: true });
+    window.addEventListener('pointerleave', () => {
+      if (cursorVisible) cursor.style.opacity = '0';
+    });
+
+    document.querySelectorAll('.card').forEach((card) => {
+      card.addEventListener('pointermove', (event) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mx', ((event.clientX - rect.left) / rect.width * 100).toFixed(2) + '%');
+        card.style.setProperty('--my', ((event.clientY - rect.top) / rect.height * 100).toFixed(2) + '%');
+      }, { passive: true });
+    });
+
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach((el, index) => {
+      el.style.transitionDelay = Math.min(index * 55, 360) + 'ms';
+      observer.observe(el);
+    });
+
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let width = 0;
+    let height = 0;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.min(180, Math.floor((width * height) / 8200));
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z: Math.random() * 0.8 + 0.2,
+        r: Math.random() * 1.4 + 0.35,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
+        hue: [190, 230, 275, 320][Math.floor(Math.random() * 4)]
+      }));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      for (const star of stars) {
+        if (!prefersReducedMotion) {
+          star.x += star.vx * star.z;
+          star.y += star.vy * star.z;
+          if (star.x < -10) star.x = width + 10;
+          if (star.x > width + 10) star.x = -10;
+          if (star.y < -10) star.y = height + 10;
+          if (star.y > height + 10) star.y = -10;
+        }
+        const alpha = 0.22 + star.z * 0.55;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r * star.z, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${star.hue}, 100%, 78%, ${alpha})`;
+        ctx.shadowBlur = 12 * star.z;
+        ctx.shadowColor = `hsla(${star.hue}, 100%, 70%, .75)`;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      if (!prefersReducedMotion) requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize, { passive: true });
+    resize();
+    draw();
+  </script>
+</body>
+</html>
