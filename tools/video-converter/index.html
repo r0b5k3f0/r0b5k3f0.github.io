@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="r0b5k3f0 的瀏覽器版 FFmpeg 影片轉檔工具：純靜態網頁、影片在本機瀏覽器處理、不上傳伺服器。" />
+  <meta name="theme-color" content="#090A1A" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="mask-icon" href="/favicons/favicon-mask.svg" color="#6ee7ff" />
+  <title>FFmpeg Video Converter · r0b5k3f0</title>
+  <style>
+    :root {
+      --bg: #070812;
+      --bg-2: #0d1026;
+      --text: #f8fbff;
+      --muted: rgba(248, 251, 255, .68);
+      --faint: rgba(248, 251, 255, .48);
+      --soft: rgba(248, 251, 255, .10);
+      --line: rgba(255, 255, 255, .15);
+      --cyan: #6ee7ff;
+      --blue: #7796ff;
+      --violet: #ba7cff;
+      --pink: #ff6ec7;
+      --gold: #ffd166;
+      --green: #75f7b1;
+      --red: #ff6f91;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .48);
+      --radius: 28px;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 8%, rgba(110, 231, 255, .28), transparent 30%),
+        radial-gradient(circle at 82% 10%, rgba(255, 110, 199, .22), transparent 30%),
+        radial-gradient(circle at 52% 80%, rgba(186, 124, 255, .22), transparent 36%),
+        linear-gradient(135deg, #050611 0%, #0b0d24 50%, #14081d 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -4;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 58px 58px;
+      mask-image: radial-gradient(circle at 50% 14%, #000 0 48%, transparent 86%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 40;
+      opacity: .06;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.72'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+
+    ::selection { background: rgba(110, 231, 255, .35); }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+
+    #stars {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -3;
+      pointer-events: none;
+    }
+
+    .aurora {
+      position: fixed;
+      inset: -22vh -20vw;
+      z-index: -5;
+      background:
+        conic-gradient(from 120deg at 30% 40%, rgba(110,231,255,.13), transparent 23%, rgba(255,110,199,.16), transparent 56%, rgba(117,247,177,.10), rgba(110,231,255,.13)),
+        conic-gradient(from 260deg at 70% 58%, rgba(186,124,255,.20), transparent 25%, rgba(255,209,102,.10), transparent 62%, rgba(110,231,255,.14));
+      filter: blur(58px) saturate(1.25);
+      animation: auroraSpin 26s linear infinite alternate;
+      opacity: .95;
+    }
+
+    .cursor-glow {
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      left: 0;
+      top: 0;
+      z-index: -2;
+      border-radius: 999px;
+      pointer-events: none;
+      translate: -50% -50%;
+      background: radial-gradient(circle, rgba(110,231,255,.20), rgba(186,124,255,.08) 42%, transparent 72%);
+      filter: blur(12px);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .wrap { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+
+    .site-header {
+      position: sticky;
+      top: 16px;
+      z-index: 30;
+      margin-top: 16px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 999px;
+      background: rgba(7, 8, 18, .56);
+      backdrop-filter: blur(22px) saturate(1.35);
+      box-shadow: 0 16px 50px rgba(0,0,0,.24);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 850;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, rgba(110,231,255,.95), rgba(186,124,255,.95) 52%, rgba(255,110,199,.95));
+      box-shadow: 0 0 30px rgba(110,231,255,.32), inset 0 0 18px rgba(255,255,255,.28);
+      overflow: hidden;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      border-radius: inherit;
+      inset: 8px;
+      border: 1px solid rgba(255,255,255,.72);
+      transform: rotate(45deg);
+    }
+    .brand-mark::after { inset: 14px; background: rgba(5,6,17,.7); border: 0; }
+
+    .nav-links { display: flex; align-items: center; gap: 6px; color: rgba(248,251,255,.78); font-size: 14px; }
+    .nav-links a { padding: 10px 13px; border-radius: 999px; transition: background .2s ease, color .2s ease, transform .2s ease; }
+    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,.1); transform: translateY(-1px); }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 12px 34px rgba(0,0,0,.22);
+      overflow: hidden;
+      isolation: isolate;
+      transition: transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease, opacity .2s ease;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .btn::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      z-index: -1;
+      opacity: 0;
+      background: linear-gradient(90deg, rgba(110,231,255,.8), rgba(186,124,255,.82), rgba(255,110,199,.8));
+      transition: opacity .22s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(255,255,255,.32); box-shadow: 0 18px 48px rgba(0,0,0,.32), 0 0 28px rgba(110,231,255,.16); }
+    .btn:hover:not(:disabled)::before { opacity: .95; }
+    .btn.primary { background: linear-gradient(90deg, rgba(110,231,255,.24), rgba(186,124,255,.23), rgba(255,110,199,.22)); }
+    .btn.danger { background: rgba(255,111,145,.13); border-color: rgba(255,111,145,.28); }
+    .btn:disabled { opacity: .48; cursor: not-allowed; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, .95fr) minmax(360px, .72fr);
+      gap: 40px;
+      align-items: center;
+      padding: 86px 0 42px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 13px;
+      border: 1px solid rgba(110,231,255,.30);
+      border-radius: 999px;
+      color: rgba(248,251,255,.82);
+      background: rgba(110,231,255,.08);
+      box-shadow: inset 0 0 22px rgba(110,231,255,.05);
+      font-size: 14px;
+      margin-bottom: 22px;
+    }
+    .pulse-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(117,247,177,.66); animation: pulse 1.8s infinite; }
+
+    h1 {
+      margin: 0;
+      max-width: 850px;
+      font-size: clamp(46px, 7.8vw, 104px);
+      line-height: .9;
+      letter-spacing: -.075em;
+    }
+    .gradient-text {
+      color: transparent;
+      background: linear-gradient(100deg, #fff 0%, var(--cyan) 26%, var(--violet) 56%, var(--pink) 82%, #fff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      background-size: 220% 100%;
+      animation: textShine 7s ease-in-out infinite;
+      filter: drop-shadow(0 12px 40px rgba(110,231,255,.12));
+    }
+    .hero-subtitle { max-width: 720px; margin: 24px 0 0; color: var(--muted); font-size: clamp(16px, 1.8vw, 21px); line-height: 1.75; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+
+    .status-orb {
+      position: relative;
+      min-height: 410px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 40px;
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.15), rgba(255,255,255,.045)),
+        radial-gradient(circle at 20% 10%, rgba(110,231,255,.20), transparent 36%),
+        radial-gradient(circle at 90% 80%, rgba(255,110,199,.18), transparent 40%);
+      backdrop-filter: blur(26px) saturate(1.35);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.20);
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .status-orb::before {
+      content: "";
+      position: absolute;
+      inset: -90px;
+      background: conic-gradient(from 0deg, transparent, rgba(110,231,255,.28), transparent, rgba(255,110,199,.24), transparent);
+      animation: spin 13s linear infinite;
+      opacity: .72;
+      z-index: -2;
+    }
+    .status-orb::after { content:""; position:absolute; inset:1px; border-radius:39px; background: rgba(8,10,24,.72); z-index:-1; }
+    .orb-inner { padding: 28px; }
+    .terminal-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+    .traffic { display: flex; gap: 8px; }
+    .traffic span { width: 12px; height: 12px; border-radius: 50%; display: block; }
+    .traffic span:nth-child(1) { background: #ff5f57; box-shadow: 0 0 14px rgba(255,95,87,.6); }
+    .traffic span:nth-child(2) { background: #ffbd2e; box-shadow: 0 0 14px rgba(255,189,46,.55); }
+    .traffic span:nth-child(3) { background: #28c840; box-shadow: 0 0 14px rgba(40,200,64,.55); }
+    .terminal-title { color: rgba(248,251,255,.55); font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .orb-visual {
+      position: relative;
+      width: 210px;
+      height: 210px;
+      margin: 22px auto 24px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255,255,255,.88), transparent 0 8%, rgba(110,231,255,.70) 9% 15%, transparent 16%),
+        radial-gradient(circle at 42% 35%, rgba(110,231,255,.96), rgba(186,124,255,.70) 32%, rgba(255,110,199,.38) 58%, rgba(5,6,17,.05) 72%),
+        conic-gradient(from 0deg, rgba(110,231,255,.75), rgba(186,124,255,.75), rgba(255,110,199,.7), rgba(117,247,177,.55), rgba(110,231,255,.75));
+      box-shadow: inset -24px -28px 62px rgba(0,0,0,.34), inset 18px 18px 50px rgba(255,255,255,.12), 0 0 45px rgba(110,231,255,.23), 0 0 110px rgba(186,124,255,.20);
+      animation: orbFloat 5.5s ease-in-out infinite;
+      overflow: hidden;
+    }
+    .orb-visual::before, .orb-visual::after {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.36);
+      transform: rotateX(64deg) rotateZ(0deg);
+      animation: ringSpin 4.5s linear infinite;
+    }
+    .orb-visual::after { inset: 21%; transform: rotateX(72deg) rotateZ(90deg); animation-duration: 6.5s; border-color: rgba(110,231,255,.45); }
+
+    .feature-list { display: grid; gap: 10px; }
+    .feature-list div { display:flex; align-items:center; gap:10px; color:rgba(248,251,255,.72); font-size:14px; }
+    .feature-list div::before { content:""; width:8px; height:8px; border-radius:50%; background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
+
+    .converter {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(380px, .72fr);
+      gap: 20px;
+      padding: 38px 0 90px;
+      align-items: start;
+    }
+
+    .panel {
+      position: relative;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.045)),
+        radial-gradient(circle at 12% 10%, rgba(110,231,255,.13), transparent 35%);
+      box-shadow: 0 20px 70px rgba(0,0,0,.28);
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      z-index: -1;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(110,231,255,.28), transparent 35%);
+      opacity: .65;
+      transition: opacity .18s ease;
+    }
+    .panel-inner { padding: 26px; position: relative; z-index: 1; }
+    .panel h2 { margin: 0 0 8px; font-size: clamp(24px, 3vw, 34px); letter-spacing: -.04em; }
+    .panel p { margin: 0; color: var(--muted); line-height: 1.65; }
+
+    .drop-zone {
+      position: relative;
+      margin-top: 22px;
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1.5px dashed rgba(110,231,255,.34);
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(110,231,255,.14), transparent 48%),
+        rgba(0,0,0,.18);
+      cursor: pointer;
+      transition: transform .22s ease, border-color .22s ease, background .22s ease;
+      overflow: hidden;
+    }
+    .drop-zone::before {
+      content: "";
+      position: absolute;
+      inset: auto -25% 24px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.68), transparent);
+      box-shadow: 0 -36px rgba(255,255,255,.16), 0 -72px rgba(255,255,255,.08), 0 36px rgba(255,255,255,.06);
+      transform: rotate(-10deg);
+      opacity: .55;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { transform: translateY(-3px); border-color: rgba(255,110,199,.50); background: radial-gradient(circle at 50% 0%, rgba(255,110,199,.13), transparent 48%), rgba(0,0,0,.21); }
+    .drop-content { position: relative; z-index: 1; max-width: 470px; padding: 28px; }
+    .upload-icon { width: 74px; height: 74px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 24px; border:1px solid rgba(255,255,255,.16); background: linear-gradient(135deg, rgba(110,231,255,.22), rgba(255,110,199,.14)); box-shadow: 0 0 34px rgba(110,231,255,.10); }
+    .drop-content strong { display: block; margin-bottom: 8px; font-size: 22px; letter-spacing: -.02em; }
+    .drop-content span { display: block; color: var(--muted); line-height: 1.6; }
+    .file-input { display: none; }
+
+    .file-card {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(0,0,0,.20);
+    }
+    .file-card.show { display: block; }
+    .file-name { font-weight: 780; word-break: break-all; margin-bottom: 8px; }
+    .file-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { display:inline-flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background: rgba(255,255,255,.055); color: rgba(248,251,255,.72); font-size: 13px; }
+
+    .settings {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+    .field { display: grid; gap: 8px; }
+    .field.full { grid-column: 1 / -1; }
+    label { color: rgba(248,251,255,.78); font-size: 13px; font-weight: 720; letter-spacing: .01em; }
+    select, input, textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 16px;
+      color: var(--text);
+      background: rgba(0,0,0,.26);
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    select, input { min-height: 46px; padding: 0 13px; }
+    textarea { min-height: 118px; padding: 13px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.55; }
+    select:focus, input:focus, textarea:focus { border-color: rgba(110,231,255,.55); box-shadow: 0 0 0 4px rgba(110,231,255,.08); background: rgba(0,0,0,.32); }
+    input[type="range"] { padding: 0; accent-color: var(--cyan); }
+    .hint { color: var(--faint); font-size: 12px; line-height: 1.5; }
+    .quality-row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 12px; align-items: center; }
+    .quality-value { min-height: 36px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.12); border-radius:12px; background: rgba(255,255,255,.05); color: var(--cyan); font-weight: 800; }
+    .custom-only { display: none; }
+    body.custom-mode .custom-only { display: grid; }
+
+    .toolbar { display:flex; flex-wrap:wrap; gap:12px; margin-top: 22px; }
+
+    .side-stack { display: grid; gap: 20px; }
+    .progress-card { padding: 20px; border-radius: 24px; border:1px solid rgba(255,255,255,.13); background: rgba(0,0,0,.20); margin-top: 20px; }
+    .progress-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 12px; }
+    .status-text { color: rgba(248,251,255,.78); font-size: 14px; }
+    .progress-number { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--cyan); font-size: 13px; }
+    .progress-track { height: 12px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; border:1px solid rgba(255,255,255,.10); }
+    .progress-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink)); box-shadow: 0 0 22px rgba(110,231,255,.35); transition: width .25s ease; }
+
+    .result { display: none; margin-top: 20px; }
+    .result.show { display: block; }
+    .result-preview { margin-top: 16px; border-radius: 22px; overflow: hidden; border:1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.24); }
+    .result-preview video, .result-preview audio, .result-preview img { width:100%; display:block; max-height: 420px; object-fit: contain; background: #000; }
+    .download-line { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top: 14px; }
+
+    .log-box {
+      margin-top: 18px;
+      height: 260px;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 22px;
+      background: rgba(0,0,0,.30);
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(248,251,255,.72);
+      white-space: pre-wrap;
+    }
+    .log-line.warn { color: var(--gold); }
+    .log-line.error { color: var(--red); }
+    .log-line.ok { color: var(--green); }
+
+    .info-grid { display: grid; gap: 12px; margin-top: 18px; }
+    .info-item { display:flex; gap:12px; align-items:flex-start; padding: 14px; border:1px solid rgba(255,255,255,.12); border-radius: 20px; background: rgba(255,255,255,.055); }
+    .info-icon { flex:0 0 auto; width: 32px; height: 32px; display:grid; place-items:center; border-radius: 12px; background: linear-gradient(135deg, rgba(110,231,255,.22), rgba(255,110,199,.12)); color: var(--cyan); }
+    .info-item strong { display:block; margin-bottom:3px; }
+    .info-item span { color: var(--muted); line-height:1.55; font-size: 13px; }
+
+    .alert {
+      display:none;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,209,102,.25);
+      color: rgba(255,243,205,.92);
+      background: rgba(255,209,102,.10);
+      line-height: 1.6;
+    }
+    .alert.show { display:block; }
+    .alert.error { border-color: rgba(255,111,145,.35); color: rgba(255,225,232,.95); background: rgba(255,111,145,.10); }
+    .alert.success { border-color: rgba(117,247,177,.30); color: rgba(221,255,237,.95); background: rgba(117,247,177,.08); }
+
+    footer { padding: 28px 0 54px; color: rgba(248,251,255,.55); }
+    .footer-inner { display:flex; align-items:center; justify-content:space-between; gap:20px; border-top:1px solid rgba(255,255,255,.11); padding-top: 22px; }
+    .footer-links { display:flex; gap:14px; flex-wrap:wrap; }
+    .footer-links a { color: rgba(248,251,255,.72); }
+    .footer-links a:hover { color: var(--cyan); }
+
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    @keyframes auroraSpin { 0% { transform: rotate(-6deg) scale(1.02); } 100% { transform: rotate(9deg) scale(1.08); } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(117,247,177,.66); } 70% { box-shadow: 0 0 0 12px rgba(117,247,177,0); } 100% { box-shadow: 0 0 0 0 rgba(117,247,177,0); } }
+    @keyframes textShine { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes orbFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(3deg); } }
+    @keyframes ringSpin { to { transform: rotateX(64deg) rotateZ(360deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 1000px) {
+      .hero, .converter { grid-template-columns: 1fr; }
+      .status-orb { min-height: auto; }
+      .nav-links { display:none; }
+    }
+    @media (max-width: 680px) {
+      .wrap { width: min(100% - 28px, 1180px); }
+      .site-header { top: 10px; margin-top: 10px; }
+      .nav { border-radius: 24px; }
+      .brand span:last-child { display:none; }
+      .hero { padding-top: 58px; }
+      h1 { font-size: clamp(42px, 15vw, 72px); }
+      .settings { grid-template-columns: 1fr; }
+      .converter { padding-bottom: 60px; }
+      .panel-inner { padding: 20px; }
+      .drop-zone { min-height: 230px; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+
+  <header class="site-header wrap">
+    <nav class="nav" aria-label="主要導覽">
+      <a class="brand" href="/" aria-label="回到首頁">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>r0b5k3f0</span>
+      </a>
+      <div class="nav-links" aria-label="頁面區段">
+        <a href="/">首頁</a>
+        <a href="#converter">轉檔器</a>
+        <a href="#logs">Log</a>
+        <a href="https://github.com/r0b5k3f0/r0b5k3f0.github.io" target="_blank" rel="noreferrer">Repo ↗</a>
+      </div>
+      <a class="btn" href="/">返回首頁</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div class="reveal">
+        <div class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span> Static Web App · FFmpeg runs in your browser</div>
+        <h1><span class="gradient-text">FFmpeg</span><br />Video Converter.</h1>
+        <p class="hero-subtitle">
+          純靜態網頁版影片轉檔工具：選擇影片後，FFmpeg WebAssembly 會在你的瀏覽器內執行。
+          檔案不會上傳到伺服器，適合快速轉 MP4、WebM、MP3、GIF 或壓縮成 720p。
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#converter">開始轉檔</a>
+          <a class="btn" href="https://ffmpegwasm.netlify.app/" target="_blank" rel="noreferrer">ffmpeg.wasm ↗</a>
+        </div>
+      </div>
+      <aside class="status-orb reveal" aria-label="工具特色">
+        <div class="orb-inner">
+          <div class="terminal-bar">
+            <div class="traffic"><span></span><span></span><span></span></div>
+            <div class="terminal-title">browser://ffmpeg.wasm</div>
+          </div>
+          <div class="orb-visual" aria-hidden="true"></div>
+          <div class="feature-list">
+            <div>不需要後端伺服器，GitHub Pages 可直接部署</div>
+            <div>使用 single-thread FFmpeg WASM，適合靜態站台</div>
+            <div>輸入檔案留在本機瀏覽器記憶體中處理</div>
+            <div>大型影片會較慢，建議先處理短片或中小型檔案</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="converter" class="converter wrap">
+      <div class="panel reveal">
+        <div class="panel-inner">
+          <h2>選擇影片與輸出格式</h2>
+          <p>拖拉影片到下方，選擇 preset，按下轉檔。第一次使用會下載 FFmpeg WASM 核心，可能需要一些時間。</p>
+
+          <input id="fileInput" class="file-input" type="file" accept="video/*,audio/*,.mkv,.mov,.avi,.webm,.mp4,.m4v,.flv,.wmv,.mp3,.wav,.m4a,.aac,.ogg" />
+          <div id="dropZone" class="drop-zone" role="button" tabindex="0" aria-label="選擇或拖拉影片檔">
+            <div class="drop-content">
+              <div class="upload-icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0-5 5m5-5 5 5M4 16.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <strong>拖拉影片 / 音訊到這裡</strong>
+              <span>或點擊選擇檔案。建議先用 10–250 MB 的檔案測試；越大的影片會越吃 CPU 與記憶體。</span>
+            </div>
+          </div>
+
+          <div id="fileCard" class="file-card" aria-live="polite">
+            <div id="fileName" class="file-name"></div>
+            <div id="fileMeta" class="file-meta"></div>
+          </div>
+
+          <div class="settings">
+            <div class="field full">
+              <label for="preset">轉檔 Preset</label>
+              <select id="preset">
+                <option value="mp4">通用 MP4：H.264 + AAC</option>
+                <option value="compress720">壓縮 720p MP4：較小檔案</option>
+                <option value="webm">WebM：VP9 + Opus</option>
+                <option value="mp3">抽出音訊 MP3</option>
+                <option value="gif">轉成 GIF 動圖</option>
+                <option value="mute">靜音 MP4：移除音軌</option>
+                <option value="custom">進階：自訂 FFmpeg 參數</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="quality">品質 / 壓縮 CRF</label>
+              <div class="quality-row">
+                <input id="quality" type="range" min="18" max="38" value="23" />
+                <div id="qualityValue" class="quality-value">23</div>
+              </div>
+              <div class="hint">數字越小品質越高、檔案越大；數字越大檔案越小。</div>
+            </div>
+
+            <div class="field">
+              <label for="resolution">輸出解析度</label>
+              <select id="resolution">
+                <option value="original">保留原始解析度</option>
+                <option value="1080">縮放至 1080p 高度</option>
+                <option value="720">縮放至 720p 高度</option>
+                <option value="480">縮放至 480p 高度</option>
+                <option value="360">縮放至 360p 高度</option>
+              </select>
+              <div class="hint">會保持長寬比，寬度自動取偶數。</div>
+            </div>
+
+            <div class="field">
+              <label for="startTime">開始時間，可留空</label>
+              <input id="startTime" type="text" inputmode="numeric" placeholder="例如 00:00:05" />
+              <div class="hint">支援秒數或 HH:MM:SS。</div>
+            </div>
+
+            <div class="field">
+              <label for="duration">轉檔長度，可留空</label>
+              <input id="duration" type="text" inputmode="numeric" placeholder="例如 10 或 00:00:10" />
+              <div class="hint">做 GIF 時建議限制 3–10 秒。</div>
+            </div>
+
+            <div class="field">
+              <label for="gifWidth">GIF 寬度</label>
+              <select id="gifWidth">
+                <option value="320">320 px</option>
+                <option value="480" selected>480 px</option>
+                <option value="640">640 px</option>
+                <option value="800">800 px</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="gifFps">GIF FPS</label>
+              <select id="gifFps">
+                <option value="8">8 fps</option>
+                <option value="10" selected>10 fps</option>
+                <option value="12">12 fps</option>
+                <option value="15">15 fps</option>
+              </select>
+            </div>
+
+            <div class="field custom-only full">
+              <label for="customArgs">自訂 FFmpeg 參數</label>
+              <textarea id="customArgs" spellcheck="false">-i {input} -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -c:a aac -b:a 160k {output}</textarea>
+              <div class="hint">可使用 <code>{input}</code> 與 <code>{output}</code>。不需要輸入「ffmpeg」。</div>
+            </div>
+
+            <div class="field custom-only">
+              <label for="customExt">自訂輸出副檔名</label>
+              <input id="customExt" type="text" value="mp4" />
+            </div>
+          </div>
+
+          <div id="message" class="alert" role="status" aria-live="polite"></div>
+
+          <div class="toolbar">
+            <button id="convertBtn" class="btn primary" type="button">載入 FFmpeg 並開始轉檔</button>
+            <button id="cancelBtn" class="btn danger" type="button" disabled>中止</button>
+            <button id="clearBtn" class="btn" type="button">清除</button>
+          </div>
+
+          <div class="progress-card" aria-live="polite">
+            <div class="progress-top">
+              <div id="statusText" class="status-text">等待檔案</div>
+              <div id="progressNumber" class="progress-number">0%</div>
+            </div>
+            <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+          </div>
+
+          <div id="result" class="result">
+            <h2>轉檔完成</h2>
+            <p id="resultMeta">輸出檔案已準備好下載。</p>
+            <div class="download-line">
+              <a id="downloadBtn" class="btn primary" href="#" download>下載檔案</a>
+              <button id="copyLogBtn" class="btn" type="button">複製 Log</button>
+            </div>
+            <div id="resultPreview" class="result-preview"></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side-stack">
+        <div class="panel reveal">
+          <div class="panel-inner">
+            <h2>注意事項</h2>
+            <p>FFmpeg 會在瀏覽器中執行，因此速度取決於你的電腦與瀏覽器。此工具適合中小型檔案與快速轉檔。</p>
+            <div class="info-grid">
+              <div class="info-item"><div class="info-icon">🔒</div><div><strong>隱私</strong><span>影片不會上傳到本站；處理發生在你的瀏覽器記憶體中。</span></div></div>
+              <div class="info-item"><div class="info-icon">⚙️</div><div><strong>純靜態</strong><span>GitHub Pages 只提供 HTML/CSS/JS；FFmpeg 由 WebAssembly 執行。</span></div></div>
+              <div class="info-item"><div class="info-icon">⏳</div><div><strong>效能</strong><span>第一次載入需下載數十 MB 的 WASM 核心；大影片可能需要很久。</span></div></div>
+              <div class="info-item"><div class="info-icon">🧪</div><div><strong>相容</strong><span>建議使用最新版 Chrome、Edge 或 Firefox。手機瀏覽器可能較慢。</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="logs" class="panel reveal">
+          <div class="panel-inner">
+            <h2>FFmpeg Log</h2>
+            <p>若轉檔失敗，這裡會顯示 FFmpeg 的錯誤訊息。</p>
+            <div id="logBox" class="log-box" aria-live="polite">等待 FFmpeg 初始化…</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <div class="footer-inner">
+      <div>© <span id="year"></span> r0b5k3f0 · Static FFmpeg WASM Converter</div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="https://github.com/r0b5k3f0" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="#converter">Converter</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    'use strict';
+
+    const $ = (selector) => document.querySelector(selector);
+    const state = {
+      file: null,
+      ffmpeg: null,
+      loaded: false,
+      busy: false,
+      objectUrl: null,
+      inputName: null,
+      outputName: null,
+      logText: ''
+    };
+
+    const CDN_SETS = [
+      {
+        name: 'jsDelivr',
+        ffmpeg: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
+        util: 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/umd/index.js',
+        core: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
+      },
+      {
+        name: 'unpkg',
+        ffmpeg: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
+        util: 'https://unpkg.com/@ffmpeg/util@0.12.2/dist/umd/index.js',
+        core: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd'
+      }
+    ];
+
+    const elements = {
+      dropZone: $('#dropZone'),
+      fileInput: $('#fileInput'),
+      fileCard: $('#fileCard'),
+      fileName: $('#fileName'),
+      fileMeta: $('#fileMeta'),
+      preset: $('#preset'),
+      quality: $('#quality'),
+      qualityValue: $('#qualityValue'),
+      resolution: $('#resolution'),
+      startTime: $('#startTime'),
+      duration: $('#duration'),
+      gifWidth: $('#gifWidth'),
+      gifFps: $('#gifFps'),
+      customArgs: $('#customArgs'),
+      customExt: $('#customExt'),
+      convertBtn: $('#convertBtn'),
+      cancelBtn: $('#cancelBtn'),
+      clearBtn: $('#clearBtn'),
+      message: $('#message'),
+      statusText: $('#statusText'),
+      progressNumber: $('#progressNumber'),
+      progressBar: $('#progressBar'),
+      result: $('#result'),
+      resultMeta: $('#resultMeta'),
+      downloadBtn: $('#downloadBtn'),
+      resultPreview: $('#resultPreview'),
+      logBox: $('#logBox'),
+      copyLogBtn: $('#copyLogBtn')
+    };
+
+    const presetDefaults = {
+      mp4: { crf: 23, resolution: 'original' },
+      compress720: { crf: 30, resolution: '720' },
+      webm: { crf: 34, resolution: 'original' },
+      mp3: { crf: 23, resolution: 'original' },
+      gif: { crf: 23, resolution: 'original' },
+      mute: { crf: 24, resolution: 'original' },
+      custom: { crf: 26, resolution: 'original' }
+    };
+
+    const mimeByExt = {
+      mp4: 'video/mp4',
+      m4v: 'video/mp4',
+      webm: 'video/webm',
+      mp3: 'audio/mpeg',
+      m4a: 'audio/mp4',
+      aac: 'audio/aac',
+      wav: 'audio/wav',
+      ogg: 'audio/ogg',
+      gif: 'image/gif'
+    };
+
+    $('#year').textContent = new Date().getFullYear();
+
+    function appendLog(message, kind = '') {
+      const text = String(message || '').trimEnd();
+      if (!text) return;
+      state.logText += text + '\n';
+      const line = document.createElement('div');
+      line.className = 'log-line ' + kind;
+      line.textContent = text;
+      if (elements.logBox.textContent === '等待 FFmpeg 初始化…') elements.logBox.textContent = '';
+      elements.logBox.appendChild(line);
+      elements.logBox.scrollTop = elements.logBox.scrollHeight;
+    }
+
+    function resetLog() {
+      state.logText = '';
+      elements.logBox.textContent = '等待 FFmpeg 初始化…';
+    }
+
+    function showMessage(text, type = 'warn') {
+      elements.message.textContent = text;
+      elements.message.className = 'alert show' + (type ? ' ' + type : '');
+    }
+
+    function hideMessage() {
+      elements.message.className = 'alert';
+      elements.message.textContent = '';
+    }
+
+    function setProgress(percent, text) {
+      const safe = Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : 0;
+      elements.progressBar.style.width = safe.toFixed(1) + '%';
+      elements.progressNumber.textContent = safe.toFixed(0) + '%';
+      if (text) elements.statusText.textContent = text;
+    }
+
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes)) return '-';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      let value = bytes;
+      let idx = 0;
+      while (value >= 1024 && idx < units.length - 1) {
+        value /= 1024;
+        idx += 1;
+      }
+      return value.toFixed(value >= 10 || idx === 0 ? 0 : 1) + ' ' + units[idx];
+    }
+
+    function getExt(name) {
+      const match = String(name || '').toLowerCase().match(/\.([a-z0-9]{1,8})$/);
+      return match ? match[1] : 'bin';
+    }
+
+    function baseName(name) {
+      return String(name || 'media').replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'media';
+    }
+
+    function safeVirtualName(prefix, ext) {
+      const cleanExt = String(ext || 'bin').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'bin';
+      return prefix + '-' + Date.now() + '.' + cleanExt;
+    }
+
+    function outputExtForPreset() {
+      const preset = elements.preset.value;
+      if (preset === 'webm') return 'webm';
+      if (preset === 'mp3') return 'mp3';
+      if (preset === 'gif') return 'gif';
+      if (preset === 'custom') return (elements.customExt.value || 'mp4').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'mp4';
+      return 'mp4';
+    }
+
+    function selectedOutputMime() {
+      return mimeByExt[outputExtForPreset()] || 'application/octet-stream';
+    }
+
+    function scaleFilter() {
+      const value = elements.resolution.value;
+      return value === 'original' ? null : 'scale=-2:' + value;
+    }
+
+    function inputArgs(inputName) {
+      const args = [];
+      const start = elements.startTime.value.trim();
+      const duration = elements.duration.value.trim();
+      if (start) args.push('-ss', start);
+      args.push('-i', inputName);
+      if (duration) args.push('-t', duration);
+      return args;
+    }
+
+    function addScale(args) {
+      const filter = scaleFilter();
+      if (filter) args.push('-vf', filter);
+    }
+
+    function parseArgs(text) {
+      const tokens = [];
+      const regex = /"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|\S+/g;
+      const matches = String(text || '').match(regex) || [];
+      for (let token of matches) {
+        if ((token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"))) {
+          token = token.slice(1, -1);
+        }
+        token = token.replace(/\\"/g, '"').replace(/\\'/g, "'");
+        tokens.push(token);
+      }
+      if (tokens[0] && tokens[0].toLowerCase() === 'ffmpeg') tokens.shift();
+      return tokens;
+    }
+
+    function buildArgs(inputName, outputName) {
+      const preset = elements.preset.value;
+      const crf = String(elements.quality.value);
+      let args = inputArgs(inputName);
+
+      if (preset === 'mp4') {
+        addScale(args);
+        args.push('-c:v', 'libx264', '-preset', 'veryfast', '-crf', crf, '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-movflags', 'faststart', outputName);
+        return args;
+      }
+
+      if (preset === 'compress720') {
+        const filter = scaleFilter() || 'scale=-2:720';
+        args.push('-vf', filter, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', crf, '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', 'faststart', outputName);
+        return args;
+      }
+
+      if (preset === 'webm') {
+        addScale(args);
+        args.push('-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', crf, '-deadline', 'good', '-cpu-used', '4', '-c:a', 'libopus', '-b:a', '128k', outputName);
+        return args;
+      }
+
+      if (preset === 'mp3') {
+        args.push('-vn', '-c:a', 'libmp3lame', '-q:a', '3', outputName);
+        return args;
+      }
+
+      if (preset === 'gif') {
+        const fps = elements.gifFps.value;
+        const width = elements.gifWidth.value;
+        const filter = 'fps=' + fps + ',scale=' + width + ':-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse';
+        args.push('-vf', filter, '-loop', '0', outputName);
+        return args;
+      }
+
+      if (preset === 'mute') {
+        addScale(args);
+        args.push('-c:v', 'libx264', '-preset', 'veryfast', '-crf', crf, '-pix_fmt', 'yuv420p', '-an', '-movflags', 'faststart', outputName);
+        return args;
+      }
+
+      const customTokens = parseArgs(elements.customArgs.value);
+      const hasInput = customTokens.some((token) => token.includes('{input}'));
+      const hasOutput = customTokens.some((token) => token.includes('{output}'));
+      let customArgs = customTokens.map((token) => token.replaceAll('{input}', inputName).replaceAll('{output}', outputName));
+      if (!hasInput) customArgs = ['-i', inputName, ...customArgs];
+      if (!hasOutput) customArgs.push(outputName);
+      return customArgs;
+    }
+
+    function updatePresetUI(changeDefaults = false) {
+      const preset = elements.preset.value;
+      document.body.classList.toggle('custom-mode', preset === 'custom');
+      if (changeDefaults && presetDefaults[preset]) {
+        elements.quality.value = presetDefaults[preset].crf;
+        elements.resolution.value = presetDefaults[preset].resolution;
+      }
+      elements.qualityValue.textContent = elements.quality.value;
+      if (preset === 'mp3') {
+        elements.statusText.textContent = state.file ? '將抽出音訊為 MP3' : '等待音訊或影片檔';
+      } else if (preset === 'gif') {
+        elements.statusText.textContent = state.file ? '建議設定短時間範圍後轉 GIF' : '等待影片檔';
+      } else if (!state.busy) {
+        elements.statusText.textContent = state.file ? '已選擇檔案，準備轉檔' : '等待檔案';
+      }
+    }
+
+    function setBusy(isBusy) {
+      state.busy = isBusy;
+      elements.convertBtn.disabled = isBusy;
+      elements.cancelBtn.disabled = !isBusy;
+      elements.fileInput.disabled = isBusy;
+      elements.preset.disabled = isBusy;
+      elements.clearBtn.disabled = isBusy;
+    }
+
+    function renderFile(file) {
+      state.file = file;
+      hideMessage();
+      elements.fileCard.classList.add('show');
+      elements.fileName.textContent = file.name;
+      elements.fileMeta.innerHTML = '';
+      const meta = [
+        formatBytes(file.size),
+        file.type || '未知 MIME',
+        '副檔名 .' + getExt(file.name)
+      ];
+      meta.forEach((item) => {
+        const pill = document.createElement('span');
+        pill.className = 'pill';
+        pill.textContent = item;
+        elements.fileMeta.appendChild(pill);
+      });
+      setProgress(0, '已選擇檔案，準備轉檔');
+      if (file.size > 500 * 1024 * 1024) {
+        showMessage('這個檔案超過 500 MB；瀏覽器版 FFmpeg 可能非常慢或記憶體不足。建議先用短片測試。', 'warn');
+      }
+    }
+
+    function clearResult() {
+      if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+      state.objectUrl = null;
+      elements.result.classList.remove('show');
+      elements.resultPreview.innerHTML = '';
+      elements.downloadBtn.removeAttribute('href');
+      elements.downloadBtn.removeAttribute('download');
+    }
+
+    function clearAll() {
+      if (state.busy) return;
+      state.file = null;
+      elements.fileInput.value = '';
+      elements.fileCard.classList.remove('show');
+      elements.fileName.textContent = '';
+      elements.fileMeta.innerHTML = '';
+      hideMessage();
+      clearResult();
+      resetLog();
+      setProgress(0, '等待檔案');
+    }
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        if ([...document.scripts].some((script) => script.src === src)) return resolve();
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('無法載入 ' + src));
+        document.head.appendChild(script);
+      });
+    }
+
+    async function ensureLibraries() {
+      if (window.FFmpegWASM && window.FFmpegUtil) return CDN_SETS[0];
+      let lastError = null;
+      for (const cdn of CDN_SETS) {
+        try {
+          appendLog('Loading ffmpeg.wasm wrapper from ' + cdn.name + '…');
+          await loadScript(cdn.ffmpeg);
+          await loadScript(cdn.util);
+          if (window.FFmpegWASM && window.FFmpegUtil) {
+            appendLog('Wrapper loaded: ' + cdn.name, 'ok');
+            return cdn;
+          }
+          throw new Error('FFmpegWASM / FFmpegUtil namespace not found');
+        } catch (error) {
+          lastError = error;
+          appendLog('CDN failed (' + cdn.name + '): ' + error.message, 'warn');
+        }
+      }
+      throw lastError || new Error('無法載入 FFmpeg WASM wrapper。');
+    }
+
+    function bindFFmpegEvents(ffmpeg) {
+      ffmpeg.on('log', ({ type, message }) => {
+        const kind = type === 'fferr' ? 'error' : '';
+        appendLog(message, kind);
+      });
+      ffmpeg.on('progress', ({ progress, time }) => {
+        if (Number.isFinite(progress)) {
+          setProgress(progress * 100, '轉檔中… ' + (time ? 'time=' + Math.round(time / 1000000) + 's' : ''));
+        }
+      });
+    }
+
+    async function ensureFFmpegLoaded(preferredCdn) {
+      if (state.loaded && state.ffmpeg) return;
+      const { FFmpeg } = window.FFmpegWASM;
+      const { toBlobURL } = window.FFmpegUtil;
+      const ordered = [preferredCdn, ...CDN_SETS.filter((cdn) => cdn !== preferredCdn)].filter(Boolean);
+      let lastError = null;
+      for (const cdn of ordered) {
+        try {
+          setProgress(4, '載入 FFmpeg 核心：' + cdn.name);
+          appendLog('Loading FFmpeg core from ' + cdn.name + '…');
+          const ffmpeg = new FFmpeg();
+          bindFFmpegEvents(ffmpeg);
+          await ffmpeg.load({
+            coreURL: await toBlobURL(cdn.core + '/ffmpeg-core.js', 'text/javascript'),
+            wasmURL: await toBlobURL(cdn.core + '/ffmpeg-core.wasm', 'application/wasm')
+          });
+          state.ffmpeg = ffmpeg;
+          state.loaded = true;
+          setProgress(10, 'FFmpeg 已載入');
+          appendLog('FFmpeg core loaded successfully.', 'ok');
+          return;
+        } catch (error) {
+          lastError = error;
+          appendLog('Core load failed (' + cdn.name + '): ' + error.message, 'warn');
+        }
+      }
+      throw lastError || new Error('無法載入 FFmpeg core。');
+    }
+
+    async function cleanupVirtualFiles() {
+      if (!state.ffmpeg) return;
+      for (const name of [state.inputName, state.outputName]) {
+        if (!name) continue;
+        try { await state.ffmpeg.deleteFile(name); } catch (_) { /* ignore */ }
+      }
+      state.inputName = null;
+      state.outputName = null;
+    }
+
+    async function convert() {
+      if (state.busy) return;
+      if (!state.file) {
+        showMessage('請先選擇一個影片或音訊檔案。', 'error');
+        return;
+      }
+
+      clearResult();
+      resetLog();
+      hideMessage();
+      setBusy(true);
+      setProgress(1, '準備中…');
+
+      try {
+        const cdn = await ensureLibraries();
+        await ensureFFmpegLoaded(cdn);
+
+        const { fetchFile } = window.FFmpegUtil;
+        const inputExt = getExt(state.file.name);
+        const outputExt = outputExtForPreset();
+        const inputName = safeVirtualName('input', inputExt);
+        const outputName = safeVirtualName('output', outputExt);
+        state.inputName = inputName;
+        state.outputName = outputName;
+
+        setProgress(12, '寫入瀏覽器虛擬檔案系統…');
+        appendLog('Input: ' + state.file.name + ' (' + formatBytes(state.file.size) + ')');
+        await state.ffmpeg.writeFile(inputName, await fetchFile(state.file));
+
+        const args = buildArgs(inputName, outputName);
+        appendLog('Command: ffmpeg ' + args.map((arg) => /\s/.test(arg) ? '"' + arg + '"' : arg).join(' '), 'ok');
+        setProgress(18, '轉檔中…');
+
+        const code = await state.ffmpeg.exec(args);
+        if (typeof code === 'number' && code !== 0) throw new Error('FFmpeg 結束碼：' + code);
+
+        setProgress(94, '讀取輸出檔案…');
+        const data = await state.ffmpeg.readFile(outputName);
+        const blob = new Blob([data.buffer], { type: selectedOutputMime() });
+        const url = URL.createObjectURL(blob);
+        state.objectUrl = url;
+
+        const downloadName = baseName(state.file.name) + '-' + elements.preset.value + '.' + outputExt;
+        elements.downloadBtn.href = url;
+        elements.downloadBtn.download = downloadName;
+        elements.resultMeta.textContent = downloadName + ' · ' + formatBytes(blob.size);
+        elements.resultPreview.innerHTML = '';
+
+        const mime = selectedOutputMime();
+        let preview;
+        if (mime.startsWith('video/')) {
+          preview = document.createElement('video');
+          preview.controls = true;
+          preview.src = url;
+        } else if (mime.startsWith('audio/')) {
+          preview = document.createElement('audio');
+          preview.controls = true;
+          preview.src = url;
+        } else if (mime === 'image/gif') {
+          preview = document.createElement('img');
+          preview.alt = 'GIF preview';
+          preview.src = url;
+        }
+        if (preview) elements.resultPreview.appendChild(preview);
+
+        elements.result.classList.add('show');
+        setProgress(100, '完成');
+        appendLog('Output: ' + downloadName + ' (' + formatBytes(blob.size) + ')', 'ok');
+        showMessage('轉檔完成！你可以下載輸出檔案。', 'success');
+        await cleanupVirtualFiles();
+      } catch (error) {
+        console.error(error);
+        appendLog(error && error.stack ? error.stack : String(error), 'error');
+        showMessage('轉檔失敗：' + (error && error.message ? error.message : String(error)) + '。請查看 FFmpeg Log，或嘗試較小檔案 / 不同 preset。', 'error');
+        setProgress(0, '轉檔失敗');
+      } finally {
+        try { await cleanupVirtualFiles(); } catch (_) { /* ignore cleanup errors */ }
+        setBusy(false);
+      }
+    }
+
+    function cancelConversion() {
+      if (!state.busy || !state.ffmpeg) return;
+      try {
+        state.ffmpeg.terminate();
+        appendLog('FFmpeg worker terminated by user.', 'warn');
+      } catch (error) {
+        appendLog('Terminate failed: ' + error.message, 'warn');
+      }
+      state.ffmpeg = null;
+      state.loaded = false;
+      setBusy(false);
+      setProgress(0, '已中止，下一次會重新載入 FFmpeg');
+      showMessage('已中止目前轉檔。', 'warn');
+    }
+
+    elements.dropZone.addEventListener('click', () => elements.fileInput.click());
+    elements.dropZone.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        elements.fileInput.click();
+      }
+    });
+    elements.fileInput.addEventListener('change', () => {
+      const file = elements.fileInput.files && elements.fileInput.files[0];
+      if (file) renderFile(file);
+    });
+
+    ['dragenter', 'dragover'].forEach((name) => {
+      elements.dropZone.addEventListener(name, (event) => {
+        event.preventDefault();
+        elements.dropZone.classList.add('drag-over');
+      });
+    });
+    ['dragleave', 'drop'].forEach((name) => {
+      elements.dropZone.addEventListener(name, (event) => {
+        event.preventDefault();
+        elements.dropZone.classList.remove('drag-over');
+      });
+    });
+    elements.dropZone.addEventListener('drop', (event) => {
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (file) renderFile(file);
+    });
+
+    elements.preset.addEventListener('change', () => updatePresetUI(true));
+    elements.quality.addEventListener('input', () => updatePresetUI(false));
+    elements.convertBtn.addEventListener('click', convert);
+    elements.cancelBtn.addEventListener('click', cancelConversion);
+    elements.clearBtn.addEventListener('click', clearAll);
+    elements.copyLogBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(state.logText || elements.logBox.textContent || '');
+        showMessage('Log 已複製到剪貼簿。', 'success');
+      } catch (_) {
+        showMessage('無法複製 Log；請手動選取 Log 內容。', 'warn');
+      }
+    });
+
+    // Cosmetic interactions
+    const cursor = document.querySelector('.cursor-glow');
+    window.addEventListener('pointermove', (event) => {
+      cursor.style.opacity = '.82';
+      cursor.style.left = event.clientX + 'px';
+      cursor.style.top = event.clientY + 'px';
+    }, { passive: true });
+    window.addEventListener('pointerleave', () => { cursor.style.opacity = '0'; });
+
+    document.querySelectorAll('.panel').forEach((panel) => {
+      panel.addEventListener('pointermove', (event) => {
+        const rect = panel.getBoundingClientRect();
+        panel.style.setProperty('--mx', ((event.clientX - rect.left) / rect.width * 100).toFixed(2) + '%');
+        panel.style.setProperty('--my', ((event.clientY - rect.top) / rect.height * 100).toFixed(2) + '%');
+      }, { passive: true });
+    });
+
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach((el, index) => {
+      el.style.transitionDelay = Math.min(index * 45, 280) + 'ms';
+      observer.observe(el);
+    });
+
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let stars = [];
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    function resizeStars() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.min(160, Math.floor((width * height) / 9000));
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z: Math.random() * 0.8 + 0.2,
+        r: Math.random() * 1.35 + 0.35,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
+        hue: [190, 230, 275, 320][Math.floor(Math.random() * 4)]
+      }));
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, width, height);
+      for (const star of stars) {
+        if (!prefersReducedMotion) {
+          star.x += star.vx * star.z;
+          star.y += star.vy * star.z;
+          if (star.x < -10) star.x = width + 10;
+          if (star.x > width + 10) star.x = -10;
+          if (star.y < -10) star.y = height + 10;
+          if (star.y > height + 10) star.y = -10;
+        }
+        const alpha = 0.22 + star.z * 0.55;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r * star.z, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${star.hue}, 100%, 78%, ${alpha})`;
+        ctx.shadowBlur = 12 * star.z;
+        ctx.shadowColor = `hsla(${star.hue}, 100%, 70%, .75)`;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      if (!prefersReducedMotion) requestAnimationFrame(drawStars);
+    }
+
+    updatePresetUI(false);
+    window.addEventListener('resize', resizeStars, { passive: true });
+    resizeStars();
+    drawStars();
+
+    if (!window.isSecureContext) {
+      showMessage('目前不是安全來源。建議透過 https://r0b5k3f0.github.io/ 使用此工具。', 'warn');
+    }
+  </script>
+</body>
+</html>
