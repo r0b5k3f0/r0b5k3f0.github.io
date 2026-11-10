@@ -1,1 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480"><rect width="480" height="480" fill="#c4dccf"/><path d="M0 380h480v100H0z" fill="#abc7b7"/><g fill="#e8f1d9"><path d="M48 72h24v24H48zM72 48h24v24H72zM96 72h24v24H96zM72 96h24v24H72zM360 120h20v20h-20zM380 100h20v20h-20zM400 120h20v20h-20zM380 140h20v20h-20z"/></g><path d="M144 160h24v-32h144v32h24v152h-24v24H168v-24h-24z" fill="#f0c59f"/><path d="M144 176v-48h24v-24h144v24h24v64h-24v-32h-96v16h-24v16h-24v24h-24z" fill="#374d46"/><path d="M184 232h16v16h-16zM280 232h16v16h-16z" fill="#374d46"/><path d="M224 280h32v8h-32z" fill="#a66b5e"/><path d="M176 264h24v8h-24zM280 264h24v8h-24z" fill="#e8a58e"/><path d="M120 480V368h48v-32h48v24h48v-24h48v32h48v112z" fill="#4a7462"/><path d="M216 360h48v24h-48z" fill="#e8f1d9"/><path d="M354 276h12v-12h24v12h12v24h-12v12h-12v12h-12v-12h-12z" fill="#d66d60"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480" role="img" aria-label="r0b5k3f0 pixel avatar">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="480" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#080a1f"/>
+      <stop offset="0.52" stop-color="#121536"/>
+      <stop offset="1" stop-color="#211033"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="240" cy="210" r="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6ee7ff" stop-opacity="0.30"/>
+      <stop offset="0.55" stop-color="#ba7cff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#080a1f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="jacket" x1="120" y1="336" x2="360" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#252f66"/>
+      <stop offset="1" stop-color="#171c42"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Cosmos background & aurora glow -->
+  <rect width="480" height="480" fill="url(#bg)"/>
+  <circle cx="240" cy="210" r="210" fill="url(#halo)"/>
+  <path d="M0 388h480v92H0z" fill="#0d1029"/>
+  <path d="M0 388h480v6H0z" fill="#6ee7ff" opacity="0.28"/>
+
+  <!-- Pixel stars -->
+  <g fill="#6ee7ff">
+    <path d="M48 72h16v16H48zM64 56h16v16H64zM80 72h16v16H80zM64 88h16v16H64z"/>
+    <path d="M404 204h12v12h-12zM84 268h12v12H84z"/>
+  </g>
+  <g fill="#ffd166">
+    <path d="M368 96h16v16h-16zM384 80h16v16h-16zM400 96h16v16h-16zM384 112h16v16h-16z"/>
+  </g>
+  <g fill="#ff6ec7" opacity="0.85">
+    <path d="M112 140h12v12h-12zM356 172h10v10h-10z"/>
+  </g>
+
+  <!-- Head & face -->
+  <path d="M144 160h24v-32h144v32h24v152h-24v24H168v-24h-24z" fill="#f4cbb2"/>
+
+  <!-- Dark indigo-violet pixel hair + cyan highlight -->
+  <path d="M144 180v-52h24v-24h144v24h24v68h-24v-36h-96v16h-24v16h-24v24h-24z" fill="#1e2248"/>
+  <path d="M168 104h96v12h-96z" fill="#6ee7ff" opacity="0.55"/>
+  <path d="M264 116h48v12h-48z" fill="#ba7cff" opacity="0.55"/>
+
+  <!-- Eyes + pixel shine -->
+  <path d="M180 228h20v20h-20zM280 228h20v20h-20z" fill="#181c3a"/>
+  <path d="M184 232h8v8h-8zM284 232h8v8h-8z" fill="#6ee7ff"/>
+
+  <!-- Soft blush & smile -->
+  <path d="M168 262h28v10h-28zM284 262h28v10h-28z" fill="#ff6ec7" opacity="0.48"/>
+  <path d="M224 280h32v8h-32z" fill="#b3667e"/>
+
+  <!-- Cyber hoodie / jacket with neon cyan & pink trim -->
+  <path d="M120 480V368h48v-32h48v24h48v-24h48v32h48v112z" fill="url(#jacket)"/>
+  <path d="M168 336h24v48h-24zM288 336h24v48h-24z" fill="#6ee7ff" opacity="0.85"/>
+  <path d="M216 360h48v24h-48z" fill="#ff6ec7" opacity="0.9"/>
+  <path d="M232 384h16v96h-16z" fill="#6ee7ff" opacity="0.35"/>
+
+  <!-- Floating neon pixel heart -->
+  <path d="M350 272h14v-14h28v14h14v28h-14v14h-14v14h-14v-14h-14z" fill="#ff6ec7"/>
+  <path d="M364 272h12v12h-12z" fill="#fff5fb" opacity="0.85"/>
+</svg>
