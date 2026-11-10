@@ -11,14 +11,14 @@
   <meta property="og:site_name" content="r0b5k3f0" />
   <meta property="og:url" content="https://r0b5k3f0.github.io/" />
   <meta property="og:title" content="r0b5k3f0 · Digital Garden" />
-  <meta property="og:description" content="Digital Garden · Web Labs · Tools — browser-native tools for video, PDF, Python, and JupyterLite." />
+  <meta property="og:description" content="Digital Garden · Web Labs · Tools — browser-native tools & interactive labs for Python, JupyterLite, PDF, video, and Little Love Lab." />
   <meta property="og:image" content="https://r0b5k3f0.github.io/og-image.png" />
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="r0b5k3f0 · Digital Garden" />
-  <meta name="twitter:description" content="Digital Garden · Web Labs · Tools — browser-native tools for video, PDF, Python, and JupyterLite." />
+  <meta name="twitter:description" content="Digital Garden · Web Labs · Tools — browser-native tools & interactive labs for Python, JupyterLite, PDF, video, and Little Love Lab." />
   <meta name="twitter:image" content="https://r0b5k3f0.github.io/og-image.png" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="mask-icon" href="/favicons/favicon-mask.svg" color="#6ee7ff" />
@@ -206,6 +206,7 @@
     .nav-links a {
       padding: 10px 13px;
       border-radius: 999px;
+      white-space: nowrap;
       transition: background .2s ease, color .2s ease, transform .2s ease;
     }
 
@@ -682,6 +683,31 @@
         radial-gradient(circle at 50% 60%, rgba(117,247,177,.28), transparent 36%),
         conic-gradient(from 180deg, rgba(110,231,255,.18), rgba(186,124,255,.22), rgba(255,110,199,.16), rgba(110,231,255,.18));
     }
+    .project-visual.love-lab {
+      background:
+        radial-gradient(circle at 30% 34%, rgba(255,110,199,.42), transparent 36%),
+        radial-gradient(circle at 76% 68%, rgba(117,247,177,.24), transparent 38%),
+        radial-gradient(rgba(255,255,255,.18) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(255,110,199,.22), rgba(255,209,102,.14), rgba(110,231,255,.16));
+      background-size: auto, auto, 14px 14px, auto;
+    }
+    .project-visual.love-lab::after {
+      content: "♥";
+      display: grid;
+      place-items: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 40px;
+      color: rgba(255, 240, 248, .92);
+      text-shadow: 0 0 24px rgba(255, 110, 199, .75);
+      width: 86px;
+      height: 86px;
+      right: 24px;
+      bottom: 20px;
+      border-radius: 24px;
+      transform: rotate(-8deg);
+      background: rgba(255, 110, 199, .16);
+      border-color: rgba(255, 255, 255, .30);
+    }
 
     .timeline {
       position: relative;
@@ -815,6 +841,11 @@
       .reveal { opacity: 1; transform: none; }
     }
 
+    @media (max-width: 1120px) {
+      .nav-links { gap: 2px; font-size: 13px; }
+      .nav-links a { padding: 9px 9px; }
+    }
+
     @media (max-width: 980px) {
       .hero { grid-template-columns: 1fr; padding-top: 72px; }
       .orb-stage { min-height: 500px; }
@@ -865,6 +896,7 @@
         <a href="/tools/jupyter/lab/">JupyterLite</a>
         <a href="/tools/pdf-toolbox/">PDF 工具箱</a>
         <a href="/tools/video-converter/">轉檔工具</a>
+        <a href="/tools/my-match-quiz/">心動配對</a>
         <a href="#showcase">作品</a>
         <a href="#contact">連結</a>
       </div>
@@ -888,6 +920,7 @@
           <a class="btn" href="/tools/jupyter/lab/">JupyterLite</a>
           <a class="btn" href="/tools/pdf-toolbox/">PDF 工具箱</a>
           <a class="btn" href="/tools/video-converter/">影片轉檔</a>
+          <a class="btn" href="/tools/my-match-quiz/">心動配對實驗室</a>
           <a class="btn" href="#showcase">探索作品</a>
           <a class="btn" href="#labs">進入實驗室</a>
         </div>
@@ -1004,6 +1037,10 @@
         </div>
         <div class="timeline-item">
           <div class="timeline-dot"></div>
+          <div class="timeline-box"><strong>Web Labs &amp; Little Love Lab</strong><span>陸續上線瀏覽器原生工具箱與霓虹玻璃風格互動測驗「心動配對實驗室」。</span></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
           <div class="timeline-box"><strong>Next Up</strong><span>後續可接上專案清單、部落格文章、GitHub API 或個人履歷。</span></div>
         </div>
       </div>
@@ -1057,6 +1094,15 @@
         </article>
         <article class="card project reveal">
           <div class="card-inner">
+            <div class="project-visual love-lab" aria-hidden="true"></div>
+            <h3>心動配對實驗室</h3>
+            <p>延續 Digital Garden 霓虹玻璃美學的趣味配對小測驗：兩個問題、15 秒相遇實驗，零後端、零追蹤，全在瀏覽器內完成。</p>
+            <div class="chips"><span class="chip">Glass UI</span><span class="chip">Interactive Quiz</span><span class="chip">Zero Tracking</span></div>
+            <div class="hero-actions" style="margin-top:18px"><a class="btn primary" href="/tools/my-match-quiz/">開始測驗</a></div>
+          </div>
+        </article>
+        <article class="card project reveal">
+          <div class="card-inner">
             <div class="project-visual" aria-hidden="true"></div>
             <h3>Web Experiments</h3>
             <p>互動網頁、動態視覺、介面實驗與快速原型。</p>
@@ -1104,6 +1150,7 @@
         <a href="#about">About</a>
         <a href="#labs">Labs</a>
         <a href="#showcase">Showcase</a>
+        <a href="/tools/my-match-quiz/">心動配對</a>
       </div>
     </div>
   </footer>

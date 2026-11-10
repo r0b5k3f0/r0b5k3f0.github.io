@@ -27,6 +27,7 @@ SVG favicon set:
 - `/tools/pdf-toolbox/` — local browser PDF toolbox for merge, extract, split, rotate, images-to-PDF, and text extraction.
 - `/tools/python-lab/` — browser-only Python IDE powered by Pyodide/WebAssembly.
 - `/tools/jupyter/lab/` — JupyterLite notebook environment with Python (Pyodide) kernel.
+- `/tools/my-match-quiz/` — **心動配對實驗室 (Little Love Lab)**, a Digital Garden neon-glass Traditional Chinese interactive quiz personalized for `r0b5k3f0`, running 100% client-side with zero tracking.
 
 
 ### FFmpeg assets
@@ -48,6 +49,15 @@ The PDF Toolbox vendors browser-side PDF libraries under `/tools/pdf-toolbox/ven
 - `PDF.js` for text extraction and PDF parsing.
 
 Uploaded PDFs/images are processed in the user's browser and are not sent to a backend.
+
+
+### Little Love Lab (`心動配對實驗室`)
+
+`/tools/my-match-quiz/` is a dependency-free static interactive quiz:
+
+- `config.js` configures personal profile fields (`name`, `bio`, `contactUrl`, `contactLabel`, `siteUrl`, `siteLabel`, `avatar`, `title`, `subtitle`) for **r0b5k3f0**.
+- `assets/avatar.svg` provides the bundled Digital Garden neon pixel-art avatar (can be swapped with a square local photo such as `assets/me.jpg`).
+- Answers stay in memory on the current page only — no backend, cookies, `localStorage`, or analytics.
 
 
 ## Social preview
