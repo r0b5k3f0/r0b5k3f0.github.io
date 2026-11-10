@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f1e8">
+  <meta name="author" content="r0b5k3f0">
+  <meta name="description" content="兩個小問題，一場意想不到的心動相遇。r0b5k3f0 數位花園裡的復古像素風配對小測驗。">
+  <link rel="canonical" href="https://r0b5k3f0.github.io/tools/my-match-quiz/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="mask-icon" href="/favicons/favicon-mask.svg" color="#6ee7ff">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="r0b5k3f0 · Digital Garden">
+  <meta property="og:url" content="https://r0b5k3f0.github.io/tools/my-match-quiz/">
+  <meta property="og:title" content="心動配對實驗室 · r0b5k3f0">
+  <meta property="og:description" content="兩個小問題，一場意想不到的心動相遇。r0b5k3f0 數位花園裡的復古像素風配對小測驗。">
+  <meta property="og:image" content="https://r0b5k3f0.github.io/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="心動配對實驗室 · r0b5k3f0">
+  <meta name="twitter:description" content="兩個小問題，一場意想不到的心動相遇。r0b5k3f0 數位花園裡的復古像素風配對小測驗。">
+  <meta name="twitter:image" content="https://r0b5k3f0.github.io/og-image.png">
+
+  <title>心動配對實驗室 · r0b5k3f0</title>
+  <style>
+    :root {
+      --paper: #f5f1e8;
+      --ink: #26483d;
+      --muted: #728277;
+      --green: #416b57;
+      --line: #d5d9c9;
+      --pink: #d66d60;
+      --light: #e8eddf;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, "Courier New", "PingFang TC", "Microsoft JhengHei", monospace;
+      min-height: 100svh;
+      background-image: radial-gradient(#bac6b5 0.65px, transparent .65px);
+      background-size: 12px 12px;
+    }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 3px solid var(--pink); outline-offset: 5px; }
+    .shell { max-width: 560px; margin: auto; padding: 38px 24px 24px; }
+    .brand { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: 2px; margin-bottom: 42px; }
+    .brand b { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+    .status { width: 7px; height: 7px; background: var(--green); display: inline-block; box-shadow: 0 0 0 3px #416b5712; }
+    .edition { color: var(--muted); }
+    .edition a, .footer a {
+      color: inherit;
+      text-decoration: underline;
+      text-decoration-color: var(--line);
+      text-underline-offset: 3px;
+      transition: color .15s, text-decoration-color .15s;
+    }
+    .edition a:hover, .footer a:hover { color: var(--green); text-decoration-color: var(--green); }
+    .card { position: relative; background: var(--paper); border: 1px solid var(--ink); box-shadow: 6px 6px 0 #d8dece; min-height: 470px; }
+    .bar { border-bottom: 1px solid var(--ink); padding: 12px 18px; display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1.7px; background: var(--light); }
+    .dots { letter-spacing: 4px; }
+    .content { padding: 32px 30px; text-align: center; }
+    .eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--muted); margin: 0 0 18px; }
+    .heart { font-size: 60px; color: var(--pink); line-height: 1.2; margin: 12px 0 24px; display: inline-block; font-family: monospace; animation: pulse 1.8s steps(2, end) infinite; text-shadow: 3px 3px #e7c9b9; }
+    h1, h2 { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; font-size: 30px; letter-spacing: 2px; line-height: 1.5; margin: 0 0 14px; font-weight: 650; }
+    .desc { font-family: inherit; color: var(--muted); font-size: 13px; line-height: 1.9; margin: 0 auto 25px; max-width: 340px; white-space: pre-line; overflow-wrap: anywhere; }
+    .primary { display: block; width: 100%; background: var(--green); color: #fff9ec; border: 1px solid var(--ink); padding: 16px 18px; cursor: pointer; text-decoration: none; font-size: 14px; letter-spacing: 2px; box-shadow: 3px 3px 0 #bcc8b6; transition: transform .15s, box-shadow .15s; }
+    .primary:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 #bcc8b6; }
+    .primary:disabled { opacity: .4; cursor: not-allowed; }
+    .micro { font-size: 10px; color: var(--muted); line-height: 1.8; margin: 18px 0 0; letter-spacing: 1px; }
+    .footer { text-align: center; color: var(--muted); font-size: 10px; line-height: 2.1; letter-spacing: .5px; margin: 30px 0 0; }
+    .footer span { display: block; }
+    .steps { display: flex; gap: 5px; justify-content: center; margin: 0 0 28px; }
+    .steps i { width: 26px; height: 4px; background: var(--line); }
+    .steps i.on { background: var(--green); }
+    .choices { display: grid; gap: 10px; margin: 24px 0; }
+    .choice { display: flex; justify-content: space-between; align-items: center; background: transparent; border: 1px solid var(--line); padding: 16px; text-align: left; color: var(--ink); cursor: pointer; font-size: 14px; }
+    .choice:hover { border-color: var(--green); }
+    .choice[aria-pressed=true] { background: var(--light); border-color: var(--green); box-shadow: inset 3px 0 var(--green); }
+    .choice span { width: 18px; height: 18px; border: 1px solid var(--muted); text-align: center; font-size: 12px; line-height: 16px; }
+    .progress { height: 12px; padding: 2px; border: 1px solid var(--green); margin: 28px 0 16px; text-align: left; }
+    .progress i { height: 100%; display: block; width: 0; background: var(--green); animation: load 2.6s steps(14, end) forwards; }
+    .portrait { position: relative; width: 210px; margin: 25px auto; border: 1px solid var(--ink); padding: 7px; background: #fff9ec; box-shadow: 4px 4px #d7dece; transform: rotate(-2deg); }
+    .portrait img { display: block; width: 100%; height: 194px; object-fit: cover; }
+    .portrait figcaption { font-size: 10px; letter-spacing: 2px; margin: 10px 0 4px; }
+    .stamp { position: absolute; right: -22px; top: -15px; transform: rotate(13deg); color: var(--pink); font-size: 40px; text-shadow: 2px 2px var(--paper); }
+    .name { font-size: 25px; overflow-wrap: anywhere; }
+    .badge { font-size: 11px; background: var(--light); border: 1px dashed var(--green); padding: 9px 12px; display: inline-block; margin: 0 0 20px; }
+    .sub-actions { display: flex; gap: 20px; justify-content: center; align-items: center; flex-wrap: wrap; margin: 22px 0 0; }
+    .secondary { border: 0; border-bottom: 1px solid var(--muted); background: none; color: var(--muted); cursor: pointer; padding: 5px 0; font-size: 12px; text-decoration: none; font-family: inherit; transition: color .15s, border-color .15s; }
+    .secondary:hover { color: var(--ink); border-color: var(--ink); }
+    .note { font-size: 12px; color: var(--pink); line-height: 1.8; margin: 15px 0 0; }
+    .focus-title:focus { outline: none; }
+    noscript { display: block; padding: 20px; text-align: center; }
+    @keyframes pulse { 50% { transform: scale(1.1); } }
+    @keyframes load { to { width: 100%; } }
+    @media (max-width: 420px) {
+      .shell { padding: 25px 19px; }
+      .brand { margin-bottom: 28px; font-size: 10px; letter-spacing: 1px; }
+      .content { padding: 28px 22px; }
+      h1, h2 { font-size: 26px; }
+      .card { min-height: 450px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *:before, *:after { animation: none !important; transition: none !important; }
+      .progress i { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="brand">
+      <b><i class="status"></i> LITTLE LOVE LAB</b>
+      <span class="edition">VOL. 01 · <a href="/">r0b5k3f0</a></span>
+    </header>
+    <main class="card">
+      <div class="bar">
+        <span id="barlabel">一份關於相遇的小實驗</span>
+        <span class="dots" aria-hidden="true">▪ ▪ ▪</span>
+      </div>
+      <div id="screen" class="content" aria-live="polite"></div>
+    </main>
+    <footer class="footer">
+      <span>MADE FOR A LITTLE SERENDIPITY · <a href="/">r0b5k3f0 Digital Garden</a> · <a href="https://github.com/r0b5k3f0" target="_blank" rel="noopener noreferrer">GitHub</a></span>
+      純屬娛樂，不代表真實相容性。<br>答案只在本頁處理，不上傳、不儲存、不追蹤。
+    </footer>
+  </div>
+  <noscript>請開啟 JavaScript 以進行測驗。</noscript>
+  <script src="config.js"></script>
+  <script>
+    (() => {
+      'use strict';
+      const defaults = {
+        name: 'r0b5k3f0',
+        contactUrl: 'https://github.com/r0b5k3f0',
+        contactLabel: '到 GitHub 跟我打個招呼',
+        siteUrl: '/',
+        siteLabel: '逛逛我的數位花園',
+        bio: '嗨，我是 r0b5k3f0！\n喜歡把靈感寫成有趣的網頁實驗與工具，也熱愛探索新世界、研究遊戲機制與尋找隱藏彩蛋。\n很高興在這座數位花園的小宇宙遇見你，下一個存檔點一起走吧！',
+        avatar: 'assets/avatar.svg',
+        title: '心動配對實驗室',
+        subtitle: '宇宙這麼大，或許答案就在眼前。'
+      };
+      const c = { ...defaults, ...window.QUIZ_CONFIG };
+      const screen = document.getElementById('screen');
+      const bar = document.getElementById('barlabel');
+      let timer = null;
+      document.title = c.name ? `${c.title} · ${c.name}` : c.title;
+
+      const el = (tag, text, cls) => {
+        const e = document.createElement(tag);
+        if (text != null) e.textContent = text;
+        if (cls) e.className = cls;
+        return e;
+      };
+      const btn = (text, cls, fn) => {
+        const b = el('button', text, cls);
+        b.type = 'button';
+        b.addEventListener('click', fn);
+        return b;
+      };
+      function parseSafeSiteUrl(raw) {
+        if (typeof raw !== 'string' || !raw.trim()) return null;
+        const val = raw.trim();
+        if (/^\/(?!\/)/.test(val)) return { href: val, external: false };
+        try {
+          const url = new URL(val);
+          if (url.protocol === 'https:') return { href: url.href, external: true };
+        } catch {}
+        return null;
+      }
+      function show(label, nodes, focus = true) {
+        clearTimeout(timer);
+        bar.textContent = label;
+        screen.replaceChildren(...nodes);
+        if (focus) {
+          const h = screen.querySelector('h1,h2');
+          if (h) {
+            h.tabIndex = -1;
+            h.classList.add('focus-title');
+            h.focus({ preventScroll: true });
+          }
+        }
+      }
+      const heart = () => {
+        const h = el('div', '♥', 'heart');
+        h.setAttribute('aria-hidden', 'true');
+        return h;
+      };
+      function home() {
+        show('一份關於相遇的小實驗', [
+          el('p', 'A SMALL EXPERIMENT IN LOVE', 'eyebrow'),
+          heart(),
+          el('h1', c.title),
+          el('p', c.subtitle, 'desc'),
+          btn('開始尋找  →', 'primary', () => question(1)),
+          el('p', '最多 2 個問題 · 大約 15 秒', 'micro')
+        ], false);
+      }
+      function question(n) {
+        const selected = new Set();
+        const next = btn('下一步  →', 'primary', () => {
+          if (!selected.size) return;
+          if (n === 1) {
+            if (selected.has(1)) question(2);
+            else loading(false);
+          } else {
+            loading(selected.has(0));
+          }
+        });
+        next.disabled = true;
+
+        const choices = el('div', null, 'choices');
+        const buttons = [];
+        ['男性', '女性', '其他'].forEach((word, i) => {
+          const b = btn('', 'choice', () => {
+            if (n === 1) selected.clear();
+            if (selected.has(i)) selected.delete(i);
+            else selected.add(i);
+            buttons.forEach((x, k) => {
+              const on = selected.has(k);
+              x.setAttribute('aria-pressed', String(on));
+              x.lastChild.textContent = on ? '✓' : '';
+            });
+            next.disabled = selected.size === 0;
+          });
+          b.append(document.createTextNode(word), el('span', ''));
+          b.lastChild.setAttribute('aria-hidden', 'true');
+          b.setAttribute('aria-pressed', 'false');
+          buttons.push(b);
+          choices.append(b);
+        });
+
+        const steps = el('div', null, 'steps');
+        steps.setAttribute('aria-hidden', 'true');
+        steps.append(el('i', null, 'on'), el('i', null, n === 2 ? 'on' : ''));
+
+        show('QUESTION 0' + n, [
+          steps,
+          el('p', n === 1 ? 'FIRST, A LITTLE ABOUT YOU' : 'FOLLOW YOUR HEART', 'eyebrow'),
+          el('h2', n === 1 ? '你是？' : '你喜歡的對象是？'),
+          el('p', n === 1 ? '選一個最適合你的答案。' : '可以複選，跟著直覺就好。', 'desc'),
+          choices,
+          next
+        ]);
+      }
+      function loading(match) {
+        const progress = el('div', null, 'progress');
+        progress.append(el('i'));
+        show('正在連接心動訊號', [
+          el('p', 'CONNECTING THE DOTS', 'eyebrow'),
+          heart(),
+          el('h2', '收到你的心動訊號'),
+          el('p', '讓宇宙稍微安排一下……', 'desc'),
+          progress,
+          el('p', '這是趣味動畫，不是真實的配對運算。', 'micro')
+        ]);
+        timer = setTimeout(() => result(match), 2800);
+      }
+      function result(match) {
+        if (!match) {
+          show('實驗結果 / 下一站幸福', [
+            el('p', 'A DIFFERENT KIND OF DESTINY', 'eyebrow'),
+            heart(),
+            el('h2', '這次沒有配對成功'),
+            el('p', '只是這個小測驗的設定不同，\n不是你的魅力不夠。\n屬於你的相遇，還在路上。', 'desc'),
+            btn('再試一次  ↻', 'primary', () => question(1)),
+            el('p', '祝你在自己的宇宙裡，遇見喜歡的人。', 'micro')
+          ]);
+          return;
+        }
+        const pic = el('figure', null, 'portrait');
+        const img = el('img');
+        img.alt = c.name + '的頭像';
+        img.src = c.avatar || defaults.avatar;
+        img.addEventListener('error', () => {
+          if (img.getAttribute('src') !== defaults.avatar) img.src = defaults.avatar;
+        }, { once: true });
+        pic.append(img, el('figcaption', 'YOUR LITTLE PLOT TWIST'), el('span', '♥', 'stamp'));
+
+        const contact = btn(c.contactLabel + '  ↗', 'primary', () => {
+          let url;
+          try { url = new URL(c.contactUrl); } catch {}
+          if (!url || url.protocol !== 'https:') {
+            let note = screen.querySelector('.note');
+            if (!note) {
+              note = el('p', '還沒設定聯絡連結喔！網站擁有者可以在 config.js 填入 HTTPS 網址。', 'note');
+              contact.after(note);
+            }
+            return;
+          }
+          window.open(url.href, '_blank', 'noopener,noreferrer');
+        });
+
+        const subActions = el('div', null, 'sub-actions');
+        const siteTarget = parseSafeSiteUrl(c.siteUrl);
+        if (siteTarget && c.siteLabel) {
+          const siteLink = el('a', c.siteLabel + ' →', 'secondary');
+          siteLink.href = siteTarget.href;
+          if (siteTarget.external) {
+            siteLink.target = '_blank';
+            siteLink.rel = 'noopener noreferrer';
+          }
+          subActions.append(siteLink);
+        }
+        subActions.append(btn('再測一次 ↻', 'secondary', () => question(1)));
+
+        show('實驗結果 / 有人正在等你', [
+          el('p', 'ONE VERY SPECIAL MATCH', 'eyebrow'),
+          el('h2', '原來，你在這裡。'),
+          pic,
+          el('h2', c.name, 'name'),
+          el('p', c.bio, 'desc'),
+          el('div', '✦ 本次特別推薦 · 就是我 ✦', 'badge'),
+          contact,
+          subActions
+        ]);
+      }
+      home();
+    })();
+  </script>
+</body>
+</html>
